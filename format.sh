@@ -1,0 +1,1 @@
+sbt "scalafmtAll;Test/scalafmtAll"

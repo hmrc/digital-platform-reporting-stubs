@@ -1,0 +1,19 @@
+{
+  "registerWithoutIDResponse": {
+    "responseCommon": {
+      "status": "OK",
+      "statusText": "",
+      "processingDate": "",
+      "returnParameters": [
+        {
+          "paramName": "SAP_NUMBER",
+          "paramValue": "5094800652"
+        }
+      ]
+    },
+    "responseDetail": {
+      "SAFEID": "XE2986131148578",
+      "ARN": "ZARN5574814"
+    }
+  }
+}

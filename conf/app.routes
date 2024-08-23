@@ -1,3 +1,6 @@
 # microservice specific routes
 
-GET        /hello-world             uk.gov.hmrc.digitalplatformreportingstubs.controllers.MicroserviceHelloWorldController.hello
+POST        /dac6/dprs0102/v1            uk.gov.hmrc.dprs.stubs.controllers.RegistrationController.registerWithId()
+POST        /dac6/dprs0101/v1            uk.gov.hmrc.dprs.stubs.controllers.RegistrationController.registerWithoutId()
+
+POST        /dac6/dprs0201/v1            uk.gov.hmrc.dprs.stubs.controllers.SubscribeController.create()
