@@ -1,4 +1,4 @@
-package uk.gov.hmrc.digitalplatformreportingstubs
+package uk.gov.hmrc.dprs.stubs
 
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import org.scalatest.matchers.should.Matchers

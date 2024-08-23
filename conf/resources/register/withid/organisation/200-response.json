@@ -1,0 +1,42 @@
+{
+  "registerWithIDResponse": {
+    "responseCommon": {
+      "status": "OK",
+      "statusText": "",
+      "processingDate": "",
+      "returnParameters": [
+        {
+          "paramName": "SAP_NUMBER",
+          "paramValue": "8231791429"
+        }
+      ]
+    },
+    "responseDetail": {
+      "SAFEID": "XE0000586571722",
+      "ARN": "WARN1442450",
+      "isEditable": true,
+      "isAnAgent": false,
+      "isAnIndividual": false,
+      "organisation": {
+        "organisationName": "Simpsons Ltd.",
+        "isAGroup": false,
+        "organisationType": "Unincorporated Body",
+        "code": "0004"
+      },
+      "address": {
+        "addressLine1": "742 Evergreen Terrace",
+        "addressLine2": "",
+        "addressLine3": "Springfield",
+        "addressLine4": "",
+        "postalCode": "",
+        "countryCode": "US"
+      },
+      "contactDetails": {
+        "phoneNumber": "176905117",
+        "mobileNumber": "62281724761",
+        "faxNumber": "08959633679",
+        "emailAddress": "edward.goodenough@example.com"
+      }
+    }
+  }
+}
