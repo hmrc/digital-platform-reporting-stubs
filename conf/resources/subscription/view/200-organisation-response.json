@@ -1,0 +1,26 @@
+{
+  "success": {
+    "processingDate": "2024-01-25T09:26:17Z",
+    "customer": {
+      "id": "XLD1234567892",
+      "tradingName": "RRR Ltd.",
+      "gbUser": true,
+      "primaryContact": {
+        "organisation": {
+          "name": "KGF corp"
+        },
+        "email": "kgf@example.com",
+        "phone": "0202333333",
+        "mobile": "08772333333"
+      },
+      "secondaryContact": {
+        "organisation": {
+          "name": "TGIF corp"
+        },
+        "email": "tgif@example.com",
+        "phone": "0202222222",
+        "mobile": "08772222222"
+      }
+    }
+  }
+}

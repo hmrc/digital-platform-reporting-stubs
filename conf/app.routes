@@ -3,4 +3,6 @@
 POST        /dac6/dprs0102/v1            uk.gov.hmrc.dprs.stubs.controllers.RegistrationController.registerWithId()
 POST        /dac6/dprs0101/v1            uk.gov.hmrc.dprs.stubs.controllers.RegistrationController.registerWithoutId()
 
-POST        /dac6/dprs0201/v1            uk.gov.hmrc.dprs.stubs.controllers.SubscribeController.create()
+POST        /dac6/dprs0201/v1               uk.gov.hmrc.dprs.stubs.controllers.SubscribeController.create()
+POST        /dac6/dprs0203/v1               uk.gov.hmrc.dprs.stubs.controllers.SubscribeController.update()
+GET         /dac6/dprs0202/v1/:idValue      uk.gov.hmrc.dprs.stubs.controllers.SubscribeController.view(idValue: String)
