@@ -16,12 +16,15 @@
 
 package utils
 
+import play.api.Environment
+
+import javax.inject.Inject
 import scala.io.Source
 
-object ResourceHelper {
+class ResourceHelper @Inject() (environment: Environment) {
 
   def resourceAsString(resourcePath: String): String = {
-    val path = getClass.getResourceAsStream(resourcePath)
+    val path = environment.resourceAsStream(resourcePath).get
     Source.fromInputStream(path).getLines.mkString("\n")
   }
 }

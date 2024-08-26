@@ -21,12 +21,14 @@ import play.api.libs.json.JsValue
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import uk.gov.hmrc.dprs.stubs.actions.AuthActionFilter
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
-import utils.ResourceHelper.resourceAsString
+import utils.ResourceHelper
 
 import javax.inject.{Inject, Singleton}
 
 @Singleton()
-class SubscribeController @Inject() (authFilter: AuthActionFilter, cc: ControllerComponents) extends BackendController(cc) with Logging {
+class SubscribeController @Inject() (resourceHelper: ResourceHelper, authFilter: AuthActionFilter, cc: ControllerComponents)
+    extends BackendController(cc)
+    with Logging {
 
   private val subscriptionResponsePath          = "/resources/subscription"
   private val create_200_ResponsePath           = s"$subscriptionResponsePath/create/200-response.json"
@@ -39,7 +41,7 @@ class SubscribeController @Inject() (authFilter: AuthActionFilter, cc: Controlle
     logger.info(s"Create User Subscription Request received: \n ${request.body} \n")
 
     (request.body \ "registerWithIDRequest" \ "requestDetail" \ "IDNumber").validate[String] match {
-      case _ => Created(resourceAsString(create_200_ResponsePath))
+      case _ => Created(resourceHelper.resourceAsString(create_200_ResponsePath))
     }
   }
 
@@ -47,16 +49,15 @@ class SubscribeController @Inject() (authFilter: AuthActionFilter, cc: Controlle
     logger.info(s"Update User Subscription Request received: \n ${request.body} \n")
 
     (request.body \ "registerWithIDRequest" \ "requestDetail" \ "IDNumber").validate[String] match {
-      case _ => Ok(resourceAsString(update_200_ResponsePath))
+      case _ => Ok(resourceHelper.resourceAsString(update_200_ResponsePath))
     }
   }
 
-  def view(idValue: String): Action[AnyContent] = (Action andThen authFilter) { implicit request =>
-
+  def view(idValue: String): Action[AnyContent] = (Action andThen authFilter) { _ =>
     idValue match {
-      case _ if idValue.contains("404") => InternalServerError(resourceAsString(view_404_ResponsePath))
-      case _ if idValue.startsWith("I") => Ok(resourceAsString(view_200_IndividualResponsePath))
-      case _ if idValue.startsWith("O") => Ok(resourceAsString(view_200_OrganisationResponsePath))
+      case _ if idValue.contains("404") => InternalServerError(resourceHelper.resourceAsString(view_404_ResponsePath))
+      case _ if idValue.startsWith("I") => Ok(resourceHelper.resourceAsString(view_200_IndividualResponsePath))
+      case _ if idValue.startsWith("O") => Ok(resourceHelper.resourceAsString(view_200_OrganisationResponsePath))
       case _                            => BadRequest("Unexpected idValue.")
     }
   }

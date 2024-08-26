@@ -1,0 +1,14 @@
+{
+  "errorDetail": {
+    "timestamp": "",
+    "correlationId": "d102b24f-767c-4620-826b-d068f86e4abc",
+    "errorCode": "404",
+    "errorMessage": "Record not found",
+    "source": "journey-dprs0102-service-camel",
+    "sourceFaultDetail": {
+      "detail": [
+        "Record not found"
+      ]
+    }
+  }
+}
