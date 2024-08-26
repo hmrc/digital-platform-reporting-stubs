@@ -1,0 +1,14 @@
+{
+  "errorDetail": {
+    "timestamp": "",
+    "correlationId": "d102b24f-767c-4620-826b-d068f86e4abc",
+    "errorCode": "409",
+    "errorMessage": "Duplicate submission",
+    "source": "Back End",
+    "sourceFaultDetail": {
+      "detail": [
+        "Duplicate submission"
+      ]
+    }
+  }
+}

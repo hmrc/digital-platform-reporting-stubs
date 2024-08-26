@@ -21,27 +21,37 @@ import play.api.libs.json.{JsSuccess, JsValue}
 import play.api.mvc.{Action, ControllerComponents}
 import uk.gov.hmrc.dprs.stubs.actions.AuthActionFilter
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
-import utils.ResourceHelper.resourceAsString
+import utils.ResourceHelper
 
 import javax.inject.{Inject, Singleton}
 
 @Singleton()
-class RegistrationController @Inject() (authFilter: AuthActionFilter, cc: ControllerComponents) extends BackendController(cc) with Logging {
+class RegistrationController @Inject() (resourceHelper: ResourceHelper, authFilter: AuthActionFilter, cc: ControllerComponents)
+    extends BackendController(cc)
+    with Logging {
 
-  private val withIdResponsePath         = "/resources/register/withid/organisation"
-  private val withId_200_ResponsePath    = s"$withIdResponsePath/200-response.json"
-  private val withId_409_ResponsePath    = s"$withIdResponsePath/409-response.json"
-  private val withId_404_ResponsePath    = s"$withIdResponsePath/404-response.json"
-  private val withoutIdResponsePath      = "/resources/register/withoutid/organisation"
-  private val withoutId_200_ResponsePath = s"$withoutIdResponsePath/200-response.json"
+  private val organisationWithIdResponsePath      = "/resources/register/withid/organisation"
+  private val organisationWithId_200_ResponsePath = s"$organisationWithIdResponsePath/200-response.json"
+  private val organisationWithId_409_ResponsePath = s"$organisationWithIdResponsePath/409-response.json"
+  private val organisationWithId_404_ResponsePath = s"$organisationWithIdResponsePath/404-response.json"
+  private val individualWithIdResponsePath        = "/resources/register/withid/individual"
+  private val individualWithId_200_ResponsePath   = s"$individualWithIdResponsePath/200-response.json"
+
+  private val organisationWithoutIdResponsePath      = "/resources/register/withoutid/organisation"
+  private val organisationWithoutId_200_ResponsePath = s"$organisationWithoutIdResponsePath/200-response.json"
+  private val individualWithId_409_ResponsePath      = s"$individualWithIdResponsePath/409-response.json"
+  private val individualWithId_404_ResponsePath      = s"$individualWithIdResponsePath/404-response.json"
 
   def registerWithId(): Action[JsValue] = (Action(parse.json) andThen authFilter) { implicit request =>
     logger.info(s"RegisterWithId Request received: \n ${request.body} \n")
 
     (request.body \ "registerWithIDRequest" \ "requestDetail" \ "IDNumber").validate[String] match {
-      case JsSuccess("0000004090409", _) => Conflict(resourceAsString(withId_409_ResponsePath))
-      case JsSuccess("0000000000404", _) => NotFound(resourceAsString(withId_404_ResponsePath))
-      case _                             => Ok(resourceAsString(withId_200_ResponsePath))
+      case JsSuccess("0000004090409", _)          => Conflict(resourceHelper.resourceAsString(organisationWithId_409_ResponsePath))
+      case JsSuccess("0000000000404", _)          => NotFound(resourceHelper.resourceAsString(organisationWithId_404_ResponsePath))
+      case JsSuccess("AA000409C", _)              => Conflict(resourceHelper.resourceAsString(individualWithId_409_ResponsePath))
+      case JsSuccess("AA000404C", _)              => NotFound(resourceHelper.resourceAsString(individualWithId_404_ResponsePath))
+      case _ if isIndividualRequest(request.body) => Ok(resourceHelper.resourceAsString(individualWithId_200_ResponsePath))
+      case _                                      => Ok(resourceHelper.resourceAsString(organisationWithId_200_ResponsePath))
     }
   }
 
@@ -49,7 +59,10 @@ class RegistrationController @Inject() (authFilter: AuthActionFilter, cc: Contro
     logger.info(s"RegisterWithoutId Request received: \n ${request.body} \n")
 
     (request.body \ "registerWithIDRequest" \ "requestDetail" \ "IDNumber").validate[String] match {
-      case _ => Ok(resourceAsString(withoutId_200_ResponsePath))
+      case _ => Ok(resourceHelper.resourceAsString(organisationWithoutId_200_ResponsePath))
     }
   }
+
+  private def isIndividualRequest(jsValue: JsValue): Boolean =
+    (jsValue \ "registerWithIDRequest" \ "requestDetail" \ "individual").asOpt[String].isDefined
 }
