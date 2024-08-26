@@ -18,7 +18,7 @@ package uk.gov.hmrc.dprs.stubs.controllers
 
 import play.api.Logging
 import play.api.libs.json.JsValue
-import play.api.mvc.{Action, ControllerComponents}
+import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import uk.gov.hmrc.dprs.stubs.actions.AuthActionFilter
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import utils.ResourceHelper.resourceAsString
@@ -51,8 +51,7 @@ class SubscribeController @Inject() (authFilter: AuthActionFilter, cc: Controlle
     }
   }
 
-  def view(idValue: String): Action[JsValue] = (Action(parse.json) andThen authFilter) { implicit request =>
-    logger.info(s"View User Subscription Request received: \n ${request.body} \n")
+  def view(idValue: String): Action[AnyContent] = (Action andThen authFilter) { implicit request =>
 
     idValue match {
       case _ if idValue.contains("404") => InternalServerError(resourceAsString(view_404_ResponsePath))
