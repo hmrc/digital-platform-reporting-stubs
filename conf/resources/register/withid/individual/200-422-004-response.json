@@ -1,0 +1,42 @@
+{
+  "registerWithIDResponse": {
+    "responseCommon": {
+      "status": "OK",
+      "statusText": "",
+      "processingDate": "",
+      "returnParameters": [
+        {
+          "paramName": "SAP_NUMBER",
+          "paramValue": "1960629967"
+        }
+      ]
+    },
+    "responseDetail": {
+      "SAFEID": "XE00000422004",
+      "ARN": "WARN3849921",
+      "isEditable": true,
+      "isAnAgent": false,
+      "isAnIndividual": true,
+      "individual": {
+        "firstName": "Rowan",
+        "middleName": "Jay",
+        "lastName": "Bean",
+        "dateOfBirth": "2000-01-01"
+      },
+      "address": {
+        "addressLine1": "Flat 2, 12 Arbour Road",
+        "addressLine2": "",
+        "addressLine3": "",
+        "addressLine4": "Highbury",
+        "postalCode": "RR1 1RR",
+        "countryCode": "UK"
+      },
+      "contactDetails": {
+        "phoneNumber": "0202000001",
+        "mobileNumber": "07500000001",
+        "faxNumber": "0202000001",
+        "emailAddress": "rowan.bean@example.com"
+      }
+    }
+  }
+}
