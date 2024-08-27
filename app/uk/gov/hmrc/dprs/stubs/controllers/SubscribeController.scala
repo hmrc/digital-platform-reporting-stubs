@@ -17,7 +17,7 @@
 package uk.gov.hmrc.dprs.stubs.controllers
 
 import play.api.Logging
-import play.api.libs.json.JsValue
+import play.api.libs.json.{JsSuccess, JsValue}
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import uk.gov.hmrc.dprs.stubs.actions.AuthActionFilter
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
@@ -32,6 +32,7 @@ class SubscribeController @Inject() (resourceHelper: ResourceHelper, authFilter:
 
   private val subscriptionResponsePath          = "/resources/subscription"
   private val create_200_ResponsePath           = s"$subscriptionResponsePath/create/200-response.json"
+  private val create_422_004_ResponsePath       = s"$subscriptionResponsePath/create/422-004-duplicate-submission.json"
   private val update_200_ResponsePath           = s"$subscriptionResponsePath/update/200-response.json"
   private val view_200_OrganisationResponsePath = s"$subscriptionResponsePath/view/200-organisation-response.json"
   private val view_200_IndividualResponsePath   = s"$subscriptionResponsePath/view/200-individual-response.json"
@@ -40,8 +41,9 @@ class SubscribeController @Inject() (resourceHelper: ResourceHelper, authFilter:
   def create(): Action[JsValue] = (Action(parse.json) andThen authFilter) { implicit request =>
     logger.info(s"Create User Subscription Request received: \n ${request.body} \n")
 
-    (request.body \ "registerWithIDRequest" \ "requestDetail" \ "IDNumber").validate[String] match {
-      case _ => Created(resourceHelper.resourceAsString(create_200_ResponsePath))
+    (request.body \ "idNumber").validate[String] match {
+      case JsSuccess("XE00000422004", _) => UnprocessableEntity(resourceHelper.resourceAsString(create_422_004_ResponsePath))
+      case _                             => Created(resourceHelper.resourceAsString(create_200_ResponsePath))
     }
   }
 
