@@ -33,7 +33,7 @@ class SubscribeController @Inject() (resourceHelper: ResourceHelper, authFilter:
   private val subscriptionResponsePath          = "/resources/subscription"
   private val create_200_ResponsePath           = s"$subscriptionResponsePath/create/200-response.json"
   private val create_422_004_ResponsePath       = s"$subscriptionResponsePath/create/422-004-duplicate-submission.json"
-  private val update_200_ResponsePath           = s"$subscriptionResponsePath/update/200-response.json"
+  private val update_202_ResponsePath           = s"$subscriptionResponsePath/update/202-response.json"
   private val view_200_OrganisationResponsePath = s"$subscriptionResponsePath/view/200-organisation-response.json"
   private val view_200_IndividualResponsePath   = s"$subscriptionResponsePath/view/200-individual-response.json"
   private val view_404_ResponsePath             = s"$subscriptionResponsePath/view/404-response.json"
@@ -51,7 +51,7 @@ class SubscribeController @Inject() (resourceHelper: ResourceHelper, authFilter:
     logger.info(s"Update User Subscription Request received: \n ${request.body} \n")
 
     (request.body \ "registerWithIDRequest" \ "requestDetail" \ "IDNumber").validate[String] match {
-      case _ => Ok(resourceHelper.resourceAsString(update_200_ResponsePath))
+      case _ => Accepted(resourceHelper.resourceAsString(update_202_ResponsePath))
     }
   }
 
