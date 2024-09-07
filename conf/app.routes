@@ -9,4 +9,4 @@ GET         /dac6/dprs0202/v1/:idValue      uk.gov.hmrc.dprs.stubs.controllers.S
 
 POST        /dac6/dprs9301/v1           uk.gov.hmrc.dprs.stubs.controllers.PlatformOperatorController.create()
 
-GET         /dec6/dprs9302/v1/:subscriptionId       uk.gov.hmrc.dprs.stubs.controllers.PlatformOperatorController.view(operatorId: String)
+GET         /dac6/dprs9302/v1/:subscriptionId       uk.gov.hmrc.dprs.stubs.controllers.PlatformOperatorController.view(operatorId: String)
