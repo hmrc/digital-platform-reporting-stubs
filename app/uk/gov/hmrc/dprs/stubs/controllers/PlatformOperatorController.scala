@@ -1,3 +1,19 @@
+/*
+ * Copyright 2024 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package uk.gov.hmrc.dprs.stubs.controllers
 
 import play.api.Logging
@@ -26,7 +42,7 @@ class PlatformOperatorController @Inject() (resourceHelper: ResourceHelper,
   def create(): Action[JsValue] = (Action(parse.json) andThen authFilter) { implicit request =>
     logger.info(s"Create Platform Operator request received:\n${request.body}\n")
 
-    (request.body \ "POManagement" \ "RequestCommon" \ "RequestType").validate[String] match {
+    (request.body \ "POManagement" \ "RequestCommon" \ "RequestType").as[String] match {
       case "CREATE" => Ok(resourceHelper.resourceAsString(create200ResponsePath))
       case "UPDATE" => Ok(resourceHelper.resourceAsString(update200ResponsePath))
       case "DELETE" => Ok(resourceHelper.resourceAsString(delete200ResponsePath))
