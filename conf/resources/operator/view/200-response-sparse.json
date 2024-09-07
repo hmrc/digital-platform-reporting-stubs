@@ -1,0 +1,37 @@
+{
+  "ViewPODetails": {
+    "ResponseCommon": {
+      "OriginatingSystem": "CADX",
+      "TransmittingSystem": "EIS",
+      "RequestType": "VIEW",
+      "Regime": "DPRS"
+    },
+    "ResponseDetails": {
+      "PlatformOperatorDetails": [
+        {
+          "POID": "123456789",
+          "POName": "Operator name",
+          "BusinessName": "Operator Name Ltd",
+          "SubscriptionID": "S123456789",
+          "TINDetails": [
+            {
+              "TINType": "UTR",
+              "TIN": "1234567890",
+              "IssuedBy": "GB"
+            }
+          ],
+          "NotificationsList": [],
+          "AddressDetails": {
+            "AddressLine1": "1 The Street",
+            "CountryCode": "GB",
+            "PostalCode": "AA1 1AA"
+          },
+          "PrimaryContactDetails": {
+            "ContactName": "Contact Name",
+            "EmailAddress": "contact@example.com"
+          }
+        }
+      ]
+    }
+  }
+}
