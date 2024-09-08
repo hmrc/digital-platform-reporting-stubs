@@ -59,4 +59,10 @@ class PlatformOperatorController @Inject() (resourceHelper: ResourceHelper,
       case _                          => Ok(resourceHelper.resourceAsString(view200FullPath))
     }
   }
+
+  def viewOne(subscriptionId: String, operatorId: String): Action[AnyContent] = (Action andThen authFilter) { implicit request =>
+    logger.info(s"View Platform Operator details request received for subscriptionId: $subscriptionId and operatorId: $operatorId")
+
+    Ok(resourceHelper.resourceAsString(view200SparsePath))
+  }
 }
