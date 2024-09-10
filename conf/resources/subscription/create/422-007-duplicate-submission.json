@@ -1,7 +1,7 @@
 {
   "errorDetail": {
-    "errorCode": "004",
-    "errorMessage": "Duplicate Submission",
+    "errorCode": "007",
+    "errorMessage": "Business partner already has active subscription for this regime",
     "source": "ETMP",
     "sourceFaultDetail": {
       "detail": [
