@@ -32,7 +32,7 @@ class SubscribeController @Inject() (resourceHelper: ResourceHelper, authFilter:
 
   private val subscriptionResponsePath          = "/resources/subscription"
   private val create_200_ResponsePath           = s"$subscriptionResponsePath/create/200-response.json"
-  private val create_422_004_ResponsePath       = s"$subscriptionResponsePath/create/422-004-duplicate-submission.json"
+  private val create_422_007_ResponsePath       = s"$subscriptionResponsePath/create/422-007-duplicate-submission.json"
   private val update_202_ResponsePath           = s"$subscriptionResponsePath/update/202-response.json"
   private val view_200_OrganisationResponsePath = s"$subscriptionResponsePath/view/200-organisation-response.json"
   private val view_200_IndividualResponsePath   = s"$subscriptionResponsePath/view/200-individual-response.json"
@@ -42,7 +42,7 @@ class SubscribeController @Inject() (resourceHelper: ResourceHelper, authFilter:
     logger.info(s"Create User Subscription Request received: \n ${request.body} \n")
 
     (request.body \ "idNumber").validate[String] match {
-      case JsSuccess("XE00000422004", _) => UnprocessableEntity(resourceHelper.resourceAsString(create_422_004_ResponsePath))
+      case JsSuccess("XE00000422007", _) => UnprocessableEntity(resourceHelper.resourceAsString(create_422_007_ResponsePath))
       case _                             => Created(resourceHelper.resourceAsString(create_200_ResponsePath))
     }
   }

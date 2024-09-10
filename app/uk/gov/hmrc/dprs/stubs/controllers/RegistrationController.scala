@@ -34,10 +34,10 @@ class RegistrationController @Inject() (resourceHelper: ResourceHelper, authFilt
   private val organisationWithId_200_ResponsePath         = s"$organisationWithIdResponsePath/200-response.json"
   private val organisationWithId_409_ResponsePath         = s"$organisationWithIdResponsePath/409-response.json"
   private val organisationWithId_404_ResponsePath         = s"$organisationWithIdResponsePath/404-response.json"
-  private val organisationWithId_200_422_004_ResponsePath = s"$organisationWithIdResponsePath/200-422-004-response.json"
+  private val organisationWithId_200_422_007_ResponsePath = s"$organisationWithIdResponsePath/200-422-007-response.json"
   private val individualWithIdResponsePath                = "/resources/register/withid/individual"
   private val individualWithId_200_ResponsePath           = s"$individualWithIdResponsePath/200-response.json"
-  private val individualWithId_200_422_004_ResponsePath   = s"$individualWithIdResponsePath/200-422-004-response.json"
+  private val individualWithId_200_422_007_ResponsePath   = s"$individualWithIdResponsePath/200-422-007-response.json"
 
   private val organisationWithoutIdResponsePath      = "/resources/register/withoutid/organisation"
   private val organisationWithoutId_200_ResponsePath = s"$organisationWithoutIdResponsePath/200-response.json"
@@ -50,10 +50,10 @@ class RegistrationController @Inject() (resourceHelper: ResourceHelper, authFilt
     (request.body \ "registerWithIDRequest" \ "requestDetail" \ "IDNumber").validate[String] match {
       case JsSuccess("0000004090409", _)          => Conflict(resourceHelper.resourceAsString(organisationWithId_409_ResponsePath))
       case JsSuccess("0000000000404", _)          => NotFound(resourceHelper.resourceAsString(organisationWithId_404_ResponsePath))
-      case JsSuccess("0000000422004", _)          => Ok(resourceHelper.resourceAsString(organisationWithId_200_422_004_ResponsePath))
+      case JsSuccess("0000000422007", _)          => Ok(resourceHelper.resourceAsString(organisationWithId_200_422_007_ResponsePath))
       case JsSuccess("AA000409C", _)              => Conflict(resourceHelper.resourceAsString(individualWithId_409_ResponsePath))
       case JsSuccess("AA000404C", _)              => NotFound(resourceHelper.resourceAsString(individualWithId_404_ResponsePath))
-      case JsSuccess("AA422004C", _)              => Ok(resourceHelper.resourceAsString(individualWithId_200_422_004_ResponsePath))
+      case JsSuccess("AA422007C", _)              => Ok(resourceHelper.resourceAsString(individualWithId_200_422_007_ResponsePath))
       case _ if isIndividualRequest(request.body) => Ok(resourceHelper.resourceAsString(individualWithId_200_ResponsePath))
       case _                                      => Ok(resourceHelper.resourceAsString(organisationWithId_200_ResponsePath))
     }
