@@ -23,6 +23,7 @@
           "NotificationsList": [],
           "AddressDetails": {
             "AddressLine1": "1 The Street",
+            "AddressLine3": "Some town",
             "CountryCode": "GB",
             "PostalCode": "AA1 1AA"
           },
