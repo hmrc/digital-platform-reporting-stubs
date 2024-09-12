@@ -68,5 +68,5 @@ class RegistrationController @Inject() (resourceHelper: ResourceHelper, authFilt
   }
 
   private def isIndividualRequest(jsValue: JsValue): Boolean =
-    (jsValue \ "registerWithIDRequest" \ "requestDetail" \ "individual").asOpt[String].isDefined
+    (jsValue \ "registerWithIDRequest" \ "requestDetail" \ "individual").isDefined
 }
