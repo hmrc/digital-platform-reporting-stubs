@@ -29,30 +29,28 @@
           "NotificationsList": [
             {
               "NotificationType": "EPO",
-              "IsActiveSeller": true,
-              "IsDueDiligence": true,
-              "FirstNotifiedReportingPeriod": "2023",
+              "FirstNotifiedReportingPeriod": 2023,
               "ReceivedDateTime": "2024-05-29T17:20:00.155Z"
             },
             {
               "NotificationType": "RPO",
               "IsActiveSeller": true,
               "IsDueDiligence": true,
-              "FirstNotifiedReportingPeriod": "2023",
+              "FirstNotifiedReportingPeriod": 2023,
               "ReceivedDateTime": "2024-05-28T17:20:00.155Z"
             },
             {
               "NotificationType": "RPO",
               "IsActiveSeller": true,
               "IsDueDiligence": false,
-              "FirstNotifiedReportingPeriod": "2024",
+              "FirstNotifiedReportingPeriod": 2024,
               "ReceivedDateTime": "2024-05-28T17:20:00.155Z"
             },
             {
               "NotificationType": "RPO",
               "IsActiveSeller": false,
               "IsDueDiligence": true,
-              "FirstNotifiedReportingPeriod": "2025",
+              "FirstNotifiedReportingPeriod": 2025,
               "ReceivedDateTime": "2024-05-28T17:20:00.155Z"
             }
           ],
