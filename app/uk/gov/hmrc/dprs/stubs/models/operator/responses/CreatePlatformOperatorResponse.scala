@@ -14,16 +14,18 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.dprs.stubs.config
+package uk.gov.hmrc.dprs.stubs.models.operator.responses
 
-import com.google.inject.AbstractModule
+import play.api.libs.functional.syntax._
+import play.api.libs.json.{OWrites, __}
 
-import java.time.Clock
+final case class CreatePlatformOperatorResponse(operatorId: String)
 
-class Module extends AbstractModule {
+object CreatePlatformOperatorResponse {
 
-  override def configure(): Unit = {
-    bind(classOf[AppConfig]).asEagerSingleton()
-    bind(classOf[Clock]).toInstance(Clock.systemUTC())
-  }
+  implicit lazy val writes: OWrites[CreatePlatformOperatorResponse] =
+    (
+      (__ \ "success" \ "ReturnParameters" \ "Value").write[String] and
+      (__ \ "success" \ "ReturnParameters" \ "Key").write[String]
+    )(o => (o.operatorId, "POID"))
 }

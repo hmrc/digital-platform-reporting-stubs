@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.dprs.stubs.config
+package uk.gov.hmrc.dprs.stubs.models.operator
 
-import com.google.inject.AbstractModule
+import enumeratum._
 
-import java.time.Clock
+sealed abstract class NotificationType(override val entryName: String) extends EnumEntry
 
-class Module extends AbstractModule {
+object NotificationType extends PlayEnum[NotificationType] {
 
-  override def configure(): Unit = {
-    bind(classOf[AppConfig]).asEagerSingleton()
-    bind(classOf[Clock]).toInstance(Clock.systemUTC())
-  }
+  override val values: IndexedSeq[NotificationType] = findValues
+
+  case object Rpo extends NotificationType("RPO")
+  case object Epo extends NotificationType("EPO")
 }

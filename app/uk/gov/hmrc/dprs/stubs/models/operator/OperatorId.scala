@@ -14,16 +14,24 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.dprs.stubs.config
+package uk.gov.hmrc.dprs.stubs.models.operator
 
-import com.google.inject.AbstractModule
+import play.api.libs.functional.syntax._
+import play.api.libs.json._
 
-import java.time.Clock
+final case class OperatorId(id: Int)
 
-class Module extends AbstractModule {
+object OperatorId {
 
-  override def configure(): Unit = {
-    bind(classOf[AppConfig]).asEagerSingleton()
-    bind(classOf[Clock]).toInstance(Clock.systemUTC())
-  }
+  val collectionId = "operatorId"
+
+  private lazy val writes: OWrites[OperatorId] = (
+    (__ \ "_id").write[String] and
+    (__ \ "nextId").write[Int]
+  )(o => (collectionId, o.id))
+
+  private lazy val reads: Reads[OperatorId] =
+    (__ \ "nextId").read[Int].map(OperatorId(_))
+
+  implicit lazy val format: OFormat[OperatorId] = OFormat(reads, writes)
 }

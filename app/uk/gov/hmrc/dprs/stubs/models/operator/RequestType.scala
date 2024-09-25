@@ -14,16 +14,17 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.dprs.stubs.config
+package uk.gov.hmrc.dprs.stubs.models.operator
 
-import com.google.inject.AbstractModule
+import enumeratum.{EnumEntry, PlayEnum}
 
-import java.time.Clock
+sealed abstract class RequestType(override val entryName: String) extends EnumEntry
 
-class Module extends AbstractModule {
+object RequestType extends PlayEnum[RequestType] {
 
-  override def configure(): Unit = {
-    bind(classOf[AppConfig]).asEagerSingleton()
-    bind(classOf[Clock]).toInstance(Clock.systemUTC())
-  }
+  override val values: IndexedSeq[RequestType] = findValues
+
+  case object Create extends RequestType("CREATE")
+  case object Update extends RequestType("UPDATE")
+  case object Delete extends RequestType("DELETE")
 }

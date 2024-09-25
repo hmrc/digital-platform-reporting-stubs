@@ -14,16 +14,20 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.dprs.stubs.config
+package uk.gov.hmrc.dprs.stubs.models.operator
 
-import com.google.inject.AbstractModule
+import enumeratum.{EnumEntry, PlayEnum}
 
-import java.time.Clock
+sealed abstract class TinType(override val entryName: String) extends EnumEntry
 
-class Module extends AbstractModule {
+object TinType extends PlayEnum[TinType] {
 
-  override def configure(): Unit = {
-    bind(classOf[AppConfig]).asEagerSingleton()
-    bind(classOf[Clock]).toInstance(Clock.systemUTC())
-  }
+  override val values: IndexedSeq[TinType] = findValues
+
+  case object Crn extends TinType("CRN")
+  case object Utr extends TinType("UTR")
+  case object Vrn extends TinType("VRN")
+  case object Empref extends TinType("EMPREF")
+  case object Chrn extends TinType("CHRN")
+  case object Other extends TinType("OTHER")
 }

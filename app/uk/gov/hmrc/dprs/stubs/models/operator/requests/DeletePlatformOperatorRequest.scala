@@ -14,16 +14,18 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.dprs.stubs.config
+package uk.gov.hmrc.dprs.stubs.models.operator.requests
 
-import com.google.inject.AbstractModule
+import play.api.libs.functional.syntax._
+import play.api.libs.json._
 
-import java.time.Clock
+final case class DeletePlatformOperatorRequest(subscriptionId: String, operatorId: String)
 
-class Module extends AbstractModule {
-
-  override def configure(): Unit = {
-    bind(classOf[AppConfig]).asEagerSingleton()
-    bind(classOf[Clock]).toInstance(Clock.systemUTC())
-  }
+object DeletePlatformOperatorRequest {
+  
+  implicit lazy val reads: Reads[DeletePlatformOperatorRequest] =
+    (
+      (__ \ "POManagement" \ "RequestDetails" \ "SubscriptionID").read[String] and
+      (__ \ "POManagement" \ "RequestDetails" \ "POID").read[String]
+    )(DeletePlatformOperatorRequest.apply _)
 }
