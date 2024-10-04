@@ -14,16 +14,6 @@
         "email": "marjorie.simpson@example.com",
         "phone": "0200000001",
         "mobile": "07800000001"
-      },
-      "secondaryContact": {
-        "individual": {
-          "firstName": "Lisa",
-          "middleName": "Marie",
-          "lastName": "Simpson"
-        },
-        "email": "lisa.simpson@example.com",
-        "phone": "0200000002",
-        "mobile": "07800000002"
       }
     }
   }
