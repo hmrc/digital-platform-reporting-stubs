@@ -16,7 +16,8 @@
 
 package uk.gov.hmrc.dprs.stubs.models.submission
 
-import play.api.libs.json.{Json, OFormat}
+import play.api.libs.functional.syntax._
+import play.api.libs.json._
 import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats
 
 import java.time.Instant
@@ -33,5 +34,16 @@ final case class SubmissionSummary(subscriptionId: String,
 
 object SubmissionSummary extends MongoJavatimeFormats.Implicits {
 
-  implicit lazy val format: OFormat[SubmissionSummary] = Json.format
+  lazy val mongoFormat: OFormat[SubmissionSummary] = Json.format
+  
+  lazy val downstreamWrites: OWrites[SubmissionSummary] = (
+    (__ \ "conversationId").write[String] and
+    (__ \ "fileName").write[String] and
+    (__ \ "pOId").write[String] and
+    (__ \ "pOName").write[String] and
+    (__ \ "reportingYear").write[String] and
+    (__ \ "submissionDateTime").write[Instant] and
+    (__ \ "submissionStatus").write[SubmissionStatus] and
+    (__ \ "assumingReporterName").writeNullable[String]
+  )(o => (o.submissionId, o.fileName, o.operatorId, o.operatorName, o.reportingPeriod, o.submissionDateTime, o.submissionStatus, o.assumingReporterName))
 }

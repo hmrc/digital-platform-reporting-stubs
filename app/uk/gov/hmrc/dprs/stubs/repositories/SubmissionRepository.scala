@@ -37,7 +37,7 @@ class SubmissionRepository @Inject()(
   extends PlayMongoRepository[SubmissionSummary](
     collectionName = "submissions",
     mongoComponent = mongoComponent,
-    domainFormat   = SubmissionSummary.format,
+    domainFormat   = SubmissionSummary.mongoFormat,
     indexes        = indexes(configuration)
   ) {
 

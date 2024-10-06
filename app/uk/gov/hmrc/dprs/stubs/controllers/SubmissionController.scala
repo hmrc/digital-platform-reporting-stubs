@@ -18,8 +18,10 @@ package uk.gov.hmrc.dprs.stubs.controllers
 
 import generated.DPISubmissionRequest_Type
 import play.api.Logging
+import play.api.libs.json.Json
 import play.api.mvc.{Action, ControllerComponents}
-import uk.gov.hmrc.dprs.stubs.models.submission.{SubmissionStatus, SubmissionSummary}
+import uk.gov.hmrc.dprs.stubs.models.submission.{SubmissionResponse, SubmissionStatus, SubmissionSummary, ViewSubmissionsRequest}
+import uk.gov.hmrc.dprs.stubs.repositories.SubmissionRepository
 import uk.gov.hmrc.dprs.stubs.services.SubmissionResultService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
@@ -32,6 +34,7 @@ import scala.xml.NodeSeq
 class SubmissionController @Inject()(
                                       cc: ControllerComponents,
                                       submissionResultService: SubmissionResultService,
+                                      submissionRepository: SubmissionRepository,
                                       clock: Clock
                                     )(implicit val ec: ExecutionContext) extends BackendController(cc) with Logging {
 
@@ -47,6 +50,17 @@ class SubmissionController @Inject()(
     }
 
     NoContent
+  }
+
+  def list(): Action[ViewSubmissionsRequest] = Action(parse.json[ViewSubmissionsRequest]).async { implicit request =>
+    submissionRepository.list(request.body.subscriptionId).map { submissions =>
+
+      if (submissions.nonEmpty) {
+        Ok(Json.toJson(SubmissionResponse(submissions)))
+      } else {
+        UnprocessableEntity
+      }
+    }
   }
   
   private def buildSubmissionSummary(request: DPISubmissionRequest_Type): SubmissionSummary =
