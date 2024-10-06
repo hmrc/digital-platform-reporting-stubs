@@ -13,5 +13,6 @@ GET         /dac6/dprs9302/v1/:subscriptionId                   uk.gov.hmrc.dprs
 GET         /dac6/dprs9302/v1/:subscriptionId/:operatorId       uk.gov.hmrc.dprs.stubs.controllers.PlatformOperatorController.viewOne(subscriptionId: String, operatorId: String)
 
 POST        /dac6/dprs0502/v1                                   uk.gov.hmrc.dprs.stubs.controllers.SubmissionController.submit()
+POST        /dac6/dprs0503/v1                                   uk.gov.hmrc.dprs.stubs.controllers.SubmissionController.list()
 
 POST        /sdes/submission/callback                           uk.gov.hmrc.dprs.stubs.controllers.SdesSubmissionCallbackController.callback()
