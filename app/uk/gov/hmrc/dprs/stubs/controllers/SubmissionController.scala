@@ -19,9 +19,11 @@ package uk.gov.hmrc.dprs.stubs.controllers
 import generated.DPISubmissionRequest_Type
 import play.api.Logging
 import play.api.mvc.{Action, ControllerComponents}
+import uk.gov.hmrc.dprs.stubs.models.submission.{SubmissionStatus, SubmissionSummary}
 import uk.gov.hmrc.dprs.stubs.services.SubmissionResultService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
+import java.time.Clock
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
 import scala.xml.NodeSeq
@@ -29,20 +31,34 @@ import scala.xml.NodeSeq
 @Singleton
 class SubmissionController @Inject()(
                                       cc: ControllerComponents,
-                                      submissionResultService: SubmissionResultService
+                                      submissionResultService: SubmissionResultService,
+                                      clock: Clock
                                     )(implicit val ec: ExecutionContext) extends BackendController(cc) with Logging {
 
   def submit(): Action[NodeSeq] = Action(parse.xml) { implicit request =>
 
     val submissionRequest = scalaxb.fromXML[DPISubmissionRequest_Type](request.body)
-    val submissionId = submissionRequest.requestCommon.conversationID
+    val submissionSummary = buildSubmissionSummary(submissionRequest)
 
     if (submissionRequest.requestDetail.DPI_OECD.MessageSpec.MessageRefId == "fail") {
-      submissionResultService.scheduleFailure(submissionId)
+      submissionResultService.scheduleSaveAndRespondFailure(submissionSummary)
     } else {
-      submissionResultService.scheduleSuccess(submissionId)
+      submissionResultService.scheduleSaveAndRespondSuccess(submissionSummary)
     }
 
     NoContent
   }
+  
+  private def buildSubmissionSummary(request: DPISubmissionRequest_Type): SubmissionSummary =
+    SubmissionSummary(
+      subscriptionId       = request.requestAdditionalDetail.subscriptionID,
+      submissionId         = request.requestCommon.conversationID,
+      fileName             = request.requestAdditionalDetail.fileName,
+      operatorId           = request.requestDetail.DPI_OECD.MessageSpec.SendingEntityIN.get,
+      operatorName         = request.requestDetail.DPI_OECD.DPIBody.head.PlatformOperator.Name.head.value,
+      reportingPeriod      = request.requestDetail.DPI_OECD.MessageSpec.ReportingPeriod.getYear.toString,
+      submissionDateTime   = clock.instant(),
+      submissionStatus     = SubmissionStatus.Pending,
+      assumingReporterName = None // TODO
+    )
 }

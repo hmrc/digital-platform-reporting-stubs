@@ -22,6 +22,8 @@ import org.apache.pekko.actor.{ActorSystem, Cancellable, Scheduler}
 import play.api.{Configuration, Logging}
 import play.api.http.Status.NO_CONTENT
 import uk.gov.hmrc.dprs.stubs.config.Service
+import uk.gov.hmrc.dprs.stubs.models.submission.{SubmissionStatus, SubmissionSummary}
+import uk.gov.hmrc.dprs.stubs.repositories.SubmissionRepository
 import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, StringContextOps, UpstreamErrorResponse}
 
@@ -37,7 +39,8 @@ import scala.util.{Failure, Success}
 class SubmissionResultService @Inject() (
                                           configuration: Configuration,
                                           httpClient: HttpClientV2,
-                                          actorSystem: ActorSystem
+                                          actorSystem: ActorSystem,
+                                          submissionRepository: SubmissionRepository
                                         )(implicit ec: ExecutionContext) extends Logging {
 
   private val digitalPlatformReporting: Service = configuration.get[Service]("microservice.services.digital-platform-reporting")
@@ -62,6 +65,45 @@ class SubmissionResultService @Inject() (
           logger.info("Successfully sent callback")
         case Failure(e) =>
           logger.error("Problem sending callback", e)
+      }
+    }
+  }
+
+  def scheduleSaveAndRespondSuccess(submission: SubmissionSummary): Cancellable =
+    scheduleSaveAndRespond(submission, SubmissionStatus.Success, successfulResponse(submission.submissionId))
+
+  def scheduleSaveAndRespondFailure(submission: SubmissionSummary): Cancellable =
+    scheduleSaveAndRespond(submission, SubmissionStatus.Rejected, failedResponse(submission.submissionId))
+
+  private def scheduleSaveAndRespond(submission: SubmissionSummary, endStatus: SubmissionStatus, response: BREResponse_Type): Cancellable = {
+    scheduler.scheduleOnce(resultDelay) {
+
+      logger.info(s"Saving submission to repository")
+
+      submissionRepository.create(submission).onComplete {
+        case Success(_) =>
+          scheduler.scheduleOnce(resultDelay) {
+
+            logger.info(s"Updating status and returning callback from submission ${submission.submissionId}")
+
+            submissionRepository.setStatus(submission.submissionId, endStatus).onComplete {
+              case Success(_) =>
+                logger.info(s"Updated status of submission id ${submission.submissionId} to $endStatus")
+
+                returnResult(submission.submissionId, response).onComplete {
+                  case Success(_) =>
+                    logger.info("Successfully sent callback")
+                  case Failure(e) =>
+                    logger.error("Problem sending callback", e)
+                }
+
+              case Failure(e) =>
+                logger.error("Problem updating status in repository", e)
+            }
+          }
+
+        case Failure(e) =>
+          logger.error("Problem saving submission to repository", e)
       }
     }
   }
