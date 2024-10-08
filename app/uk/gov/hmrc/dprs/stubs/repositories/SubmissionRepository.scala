@@ -23,7 +23,7 @@ import play.api.Configuration
 import uk.gov.hmrc.dprs.stubs.models.submission.{SubmissionStatus, SubmissionSummary}
 import uk.gov.hmrc.dprs.stubs.repositories.SubmissionRepository.indexes
 import uk.gov.hmrc.mongo.MongoComponent
-import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
+import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
 
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
@@ -38,7 +38,8 @@ class SubmissionRepository @Inject()(
     collectionName = "submissions",
     mongoComponent = mongoComponent,
     domainFormat   = SubmissionSummary.mongoFormat,
-    indexes        = indexes(configuration)
+    indexes        = indexes(configuration),
+    extraCodecs    = Codecs.playFormatSumCodecs(SubmissionStatus.jsonFormat)
   ) {
 
   def create(submission: SubmissionSummary): Future[Done] =
@@ -49,7 +50,7 @@ class SubmissionRepository @Inject()(
   def setStatus(submissionId: String, status: SubmissionStatus): Future[Done] =
     collection.updateOne(
       filter = Filters.eq("submissionId", submissionId),
-      update = Updates.set("status", status)
+      update = Updates.set("submissionStatus", status)
     )
       .toFuture()
       .map(_ => Done)

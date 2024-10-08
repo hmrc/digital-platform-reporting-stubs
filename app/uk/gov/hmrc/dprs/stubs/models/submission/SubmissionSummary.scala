@@ -32,9 +32,12 @@ final case class SubmissionSummary(subscriptionId: String,
                                    submissionStatus: SubmissionStatus,
                                    assumingReporterName: Option[String])
 
-object SubmissionSummary extends MongoJavatimeFormats.Implicits {
+object SubmissionSummary {
 
-  lazy val mongoFormat: OFormat[SubmissionSummary] = Json.format
+  lazy val mongoFormat: OFormat[SubmissionSummary] = {
+    implicit val instantFormat: Format[Instant] = MongoJavatimeFormats.instantFormat
+    Json.format
+  }
   
   lazy val downstreamWrites: OWrites[SubmissionSummary] = (
     (__ \ "conversationId").write[String] and
