@@ -109,7 +109,7 @@ class SubmissionResultService @Inject() (
   }
 
   private def returnResult(submissionId: String, result: BREResponse_Type): Future[Done] = {
-    httpClient.post(url"$digitalPlatformReporting/cadx/submission/callback")(HeaderCarrier())
+    httpClient.post(url"$digitalPlatformReporting/dac6/dprs0504/v1")(HeaderCarrier())
       .setHeader(
         "X-Correlation-ID" -> UUID.randomUUID().toString,
         "X-Conversation-ID" -> submissionId,
