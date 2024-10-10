@@ -16,51 +16,42 @@
 
 package uk.gov.hmrc.dprs.stubs.controllers
 
-import play.api.Logging
-import play.api.libs.json.{JsSuccess, JsValue}
+import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import uk.gov.hmrc.dprs.stubs.actions.AuthActionFilter
+import uk.gov.hmrc.dprs.stubs.models.subscription.{CreateSubscriptionRequest, CreateSubscriptionResponse, Subscription, SubscriptionInfo, UpdateSubscriptionRequest}
+import uk.gov.hmrc.dprs.stubs.repositories.{SubscriptionIdRepository, SubscriptionRepository}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
-import utils.ResourceHelper
 
+import java.time.Clock
 import javax.inject.{Inject, Singleton}
+import scala.concurrent.ExecutionContext
 
 @Singleton()
-class SubscribeController @Inject() (resourceHelper: ResourceHelper, authFilter: AuthActionFilter, cc: ControllerComponents)
-    extends BackendController(cc)
-    with Logging {
+class SubscribeController @Inject()(authFilter: AuthActionFilter,
+                                    cc: ControllerComponents,
+                                    subscriptionRepository: SubscriptionRepository,
+                                    subscriptionIdRepository: SubscriptionIdRepository,
+                                    clock: Clock)(implicit ec: ExecutionContext)
+  extends BackendController(cc) {
 
-  private val subscriptionResponsePath          = "/resources/subscription"
-  private val create_200_ResponsePath           = s"$subscriptionResponsePath/create/200-response.json"
-  private val create_422_007_ResponsePath       = s"$subscriptionResponsePath/create/422-007-duplicate-submission.json"
-  private val update_202_ResponsePath           = s"$subscriptionResponsePath/update/202-response.json"
-  private val view_200_OrganisationResponsePath = s"$subscriptionResponsePath/view/200-organisation-response.json"
-  private val view_200_IndividualResponsePath   = s"$subscriptionResponsePath/view/200-individual-response.json"
-  private val view_404_ResponsePath             = s"$subscriptionResponsePath/view/404-response.json"
-
-  def create(): Action[JsValue] = (Action(parse.json) andThen authFilter) { implicit request =>
-    logger.info(s"Create User Subscription Request received: \n ${request.body} \n")
-
-    (request.body \ "idNumber").validate[String] match {
-      case JsSuccess("XE00000422007", _) => UnprocessableEntity(resourceHelper.resourceAsString(create_422_007_ResponsePath))
-      case _                             => Created(resourceHelper.resourceAsString(create_200_ResponsePath))
-    }
+  def create(): Action[CreateSubscriptionRequest] = (Action(parse.json[CreateSubscriptionRequest]) andThen authFilter).async { implicit request =>
+    for {
+      subscriptionId <- subscriptionIdRepository.nextSubscriptionId
+      subscription   = Subscription(request.body, subscriptionId.id.toString, clock)
+      _              <- subscriptionRepository.create(subscription)
+    } yield Created(Json.toJson(CreateSubscriptionResponse(subscriptionId.id.toString, clock.instant)))
   }
 
-  def update(): Action[JsValue] = (Action(parse.json) andThen authFilter) { implicit request =>
-    logger.info(s"Update User Subscription Request received: \n ${request.body} \n")
-
-    (request.body \ "registerWithIDRequest" \ "requestDetail" \ "IDNumber").validate[String] match {
-      case _ => Accepted(resourceHelper.resourceAsString(update_202_ResponsePath))
-    }
+  def update(): Action[UpdateSubscriptionRequest] = (Action(parse.json[UpdateSubscriptionRequest]) andThen authFilter).async { implicit request =>
+    val subscription = Subscription(request.body, clock)
+    subscriptionRepository.update(subscription).map(_ => Accepted)
   }
 
-  def view(idValue: String): Action[AnyContent] = (Action andThen authFilter) { _ =>
-    idValue match {
-      case _ if idValue.contains("404") => InternalServerError(resourceHelper.resourceAsString(view_404_ResponsePath))
-      case _ if idValue.startsWith("I") => Ok(resourceHelper.resourceAsString(view_200_IndividualResponsePath))
-      case _ if idValue.startsWith("O") => Ok(resourceHelper.resourceAsString(view_200_OrganisationResponsePath))
-      case _                            => BadRequest("Unexpected idValue.")
+  def view(idValue: String): Action[AnyContent] = (Action andThen authFilter).async { _ =>
+    subscriptionRepository.get(idValue).map {
+      case Some(subscription) => Ok(Json.toJson(SubscriptionInfo(subscription)))
+      case None               => NotFound
     }
   }
 }

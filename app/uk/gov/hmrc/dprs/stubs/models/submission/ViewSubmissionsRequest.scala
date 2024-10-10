@@ -31,28 +31,28 @@ final case class ViewSubmissionsRequest(subscriptionId: String,
 
 object ViewSubmissionsRequest {
   
-  implicit lazy val reads: Reads[ViewSubmissionsRequest] =(
-      (__ \ "submissionsListRequest" \ "requestDetails" \ "subscriptionId").read[String] and
-      (__ \ "submissionsListRequest" \ "requestDetails" \ "isManual").read[Boolean] and
-      (__ \ "submissionsListRequest" \ "requestDetails" \ "pageNumber").read[Int] and
-      (__ \ "submissionsListRequest" \ "requestDetails" \ "sortBy").read[SubmissionSortBy] and
-      (__ \ "submissionsListRequest" \ "requestDetails" \ "sortOrder").read[SortOrder] and
-      (__ \ "submissionsListRequest" \ "requestDetails" \ "reportingYear").readNullable[String] and
-      (__ \ "submissionsListRequest" \ "requestDetails" \ "pOId").readNullable[String] and
-      (__ \ "submissionsListRequest" \ "requestDetails" \ "fileName").readNullable[String] and
-      (__ \ "submissionsListRequest" \ "requestDetails" \ "submissionStatus").readNullable[String]
-    )((subscriptionId, isManual, pageNumber, sortBy, sortOrder, reportingYear, poId, fileName, submissionStatus) =>
-      ViewSubmissionsRequest(
-        subscriptionId,
-        isManual,
-        pageNumber,
-        sortBy,
-        sortOrder,
-        reportingYear,
-        poId,
-        fileName,
-        submissionStatus.map { status =>
-          status.split(',').map(x => SubmissionStatus.values.find(_.entryName == x).get).toSeq
-        }.getOrElse(Nil)
-      ))
+  implicit lazy val reads: Reads[ViewSubmissionsRequest] = (
+    (__ \ "submissionsListRequest" \ "requestDetails" \ "subscriptionId").read[String] and
+    (__ \ "submissionsListRequest" \ "requestDetails" \ "isManual").read[Boolean] and
+    (__ \ "submissionsListRequest" \ "requestDetails" \ "pageNumber").read[Int] and
+    (__ \ "submissionsListRequest" \ "requestDetails" \ "sortBy").read[SubmissionSortBy] and
+    (__ \ "submissionsListRequest" \ "requestDetails" \ "sortOrder").read[SortOrder] and
+    (__ \ "submissionsListRequest" \ "requestDetails" \ "reportingYear").readNullable[String] and
+    (__ \ "submissionsListRequest" \ "requestDetails" \ "pOId").readNullable[String] and
+    (__ \ "submissionsListRequest" \ "requestDetails" \ "fileName").readNullable[String] and
+    (__ \ "submissionsListRequest" \ "requestDetails" \ "submissionStatus").readNullable[String]
+  )((subscriptionId, isManual, pageNumber, sortBy, sortOrder, reportingYear, poId, fileName, submissionStatus) =>
+    ViewSubmissionsRequest(
+      subscriptionId,
+      isManual,
+      pageNumber,
+      sortBy,
+      sortOrder,
+      reportingYear,
+      poId,
+      fileName,
+      submissionStatus.map { status =>
+        status.split(',').map(x => SubmissionStatus.values.find(_.entryName == x).get).toSeq
+      }.getOrElse(Nil)
+    ))
 }
