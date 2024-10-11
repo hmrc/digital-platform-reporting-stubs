@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.dprs.stubs.controllers
 
-import generated.DPISubmissionRequest_Type
+import generated.{CorrectableOtherRPO_Type, DPISubmissionRequest_Type, OtherPlatformOperators_TypeSequence1}
 import play.api.Logging
 import play.api.libs.json.Json
 import play.api.mvc.{Action, ControllerComponents}
@@ -55,24 +55,40 @@ class SubmissionController @Inject()(
   def list(): Action[ViewSubmissionsRequest] = Action(parse.json[ViewSubmissionsRequest]).async { implicit request =>
     submissionRepository.list(request.body.subscriptionId).map { submissions =>
 
-      if (submissions.nonEmpty) {
-        Ok(Json.toJson(SubmissionResponse(submissions)))
+      val filteredSubmissions =
+        submissions.filter(_.assumingReporterName.isDefined == request.body.assumedReporting)
+
+      if (filteredSubmissions.nonEmpty) {
+        Ok(Json.toJson(SubmissionResponse(filteredSubmissions)))
       } else {
         UnprocessableEntity
       }
     }
   }
   
-  private def buildSubmissionSummary(request: DPISubmissionRequest_Type): SubmissionSummary =
+  private def buildSubmissionSummary(request: DPISubmissionRequest_Type): SubmissionSummary = {
+
+    val assumingOperatorName =
+      request.requestDetail.DPI_OECD.DPIBody.find(_.OtherPlatformOperators.isDefined)
+        .flatMap { dpiBody =>
+          dpiBody.OtherPlatformOperators.flatMap { otherOperators =>
+            otherOperators.otherplatformoperators_typeoption.value match {
+              case x: OtherPlatformOperators_TypeSequence1 => Some(x.AssumingPlatformOperator.Name.value)
+              case _ => None
+            }
+          }
+        }
+
     SubmissionSummary(
-      subscriptionId       = request.requestAdditionalDetail.subscriptionID,
-      submissionId         = request.requestCommon.conversationID,
-      fileName             = request.requestAdditionalDetail.fileName,
-      operatorId           = request.requestDetail.DPI_OECD.MessageSpec.SendingEntityIN.get,
-      operatorName         = request.requestDetail.DPI_OECD.DPIBody.head.PlatformOperator.Name.head.value,
-      reportingPeriod      = request.requestDetail.DPI_OECD.MessageSpec.ReportingPeriod.getYear.toString,
-      submissionDateTime   = clock.instant(),
-      submissionStatus     = SubmissionStatus.Pending,
-      assumingReporterName = None // TODO
+      subscriptionId = request.requestAdditionalDetail.subscriptionID,
+      submissionId = request.requestCommon.conversationID,
+      fileName = request.requestAdditionalDetail.fileName,
+      operatorId = request.requestDetail.DPI_OECD.MessageSpec.SendingEntityIN.get,
+      operatorName = request.requestDetail.DPI_OECD.DPIBody.head.PlatformOperator.Name.head.value,
+      reportingPeriod = request.requestDetail.DPI_OECD.MessageSpec.ReportingPeriod.getYear.toString,
+      submissionDateTime = clock.instant(),
+      submissionStatus = SubmissionStatus.Pending,
+      assumingReporterName = assumingOperatorName
     )
+  }
 }
