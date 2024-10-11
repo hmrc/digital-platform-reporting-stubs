@@ -26,10 +26,11 @@ import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
 
 import java.util.concurrent.TimeUnit
-import javax.inject.Inject
+import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration.Duration
 
+@Singleton
 class SubmissionRepository @Inject()(
                                       mongoComponent: MongoComponent,
                                       configuration: Configuration
