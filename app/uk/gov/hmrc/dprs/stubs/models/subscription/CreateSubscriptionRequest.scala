@@ -19,7 +19,8 @@ package uk.gov.hmrc.dprs.stubs.models.subscription
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
 
-final case class CreateSubscriptionRequest(gbUser: Boolean,
+final case class CreateSubscriptionRequest(safeId: String,
+                                           gbUser: Boolean,
                                            tradingName: Option[String],
                                            primaryContact: Contact,
                                            secondaryContact: Option[Contact])
@@ -27,6 +28,7 @@ final case class CreateSubscriptionRequest(gbUser: Boolean,
 object CreateSubscriptionRequest {
 
   implicit lazy val downstreamReads: Reads[CreateSubscriptionRequest] = (
+    (__ \ "idNumber").read[String] and
     (__ \ "gbUser").read[Boolean] and
     (__ \ "tradingName").readNullable[String] and
     (__ \ "primaryContact").read[Contact] and

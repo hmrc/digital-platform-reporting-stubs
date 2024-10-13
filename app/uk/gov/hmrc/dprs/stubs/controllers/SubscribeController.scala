@@ -22,25 +22,34 @@ import uk.gov.hmrc.dprs.stubs.actions.AuthActionFilter
 import uk.gov.hmrc.dprs.stubs.models.subscription.{CreateSubscriptionRequest, CreateSubscriptionResponse, Subscription, SubscriptionInfo, UpdateSubscriptionRequest}
 import uk.gov.hmrc.dprs.stubs.repositories.{SubscriptionIdRepository, SubscriptionRepository}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
+import utils.ResourceHelper
 
 import java.time.Clock
 import javax.inject.{Inject, Singleton}
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton()
-class SubscribeController @Inject()(authFilter: AuthActionFilter,
+class SubscribeController @Inject()(resourceHelper: ResourceHelper,
+                                    authFilter: AuthActionFilter,
                                     cc: ControllerComponents,
                                     subscriptionRepository: SubscriptionRepository,
                                     subscriptionIdRepository: SubscriptionIdRepository,
                                     clock: Clock)(implicit ec: ExecutionContext)
   extends BackendController(cc) {
 
+  private val subscriptionResponsePath          = "/resources/subscription"
+  private val create_422_007_ResponsePath       = s"$subscriptionResponsePath/create/422-007-duplicate-submission.json"
+
   def create(): Action[CreateSubscriptionRequest] = (Action(parse.json[CreateSubscriptionRequest]) andThen authFilter).async { implicit request =>
-    for {
-      subscriptionId <- subscriptionIdRepository.nextSubscriptionId
-      subscription   = Subscription(request.body, subscriptionId.id.toString, clock)
-      _              <- subscriptionRepository.create(subscription)
-    } yield Created(Json.toJson(CreateSubscriptionResponse(subscriptionId.id.toString, clock.instant)))
+    request.body.safeId match {
+      case "XE00000422007" => Future.successful(UnprocessableEntity(resourceHelper.resourceAsString(create_422_007_ResponsePath)))
+      case _ =>
+        for {
+          subscriptionId <- subscriptionIdRepository.nextSubscriptionId
+          subscription   = Subscription(request.body, subscriptionId.id.toString, clock)
+          _              <- subscriptionRepository.create(subscription)
+        } yield Created(Json.toJson(CreateSubscriptionResponse(subscriptionId.id.toString, clock.instant)))
+    }
   }
 
   def update(): Action[UpdateSubscriptionRequest] = (Action(parse.json[UpdateSubscriptionRequest]) andThen authFilter).async { implicit request =>
