@@ -58,6 +58,9 @@ class SubmissionRepository @Inject()(
 
   def list(subscriptionId: String): Future[Seq[SubmissionSummary]] =
     collection.find(Filters.eq("subscriptionId", subscriptionId)).toFuture()
+
+  def getByCaseId(caseId: String): Future[Option[SubmissionSummary]] =
+    collection.find(Filters.eq("submissionCaseId", caseId)).headOption()
 }
 
 object SubmissionRepository {
@@ -75,6 +78,11 @@ object SubmissionRepository {
         IndexOptions()
           .name("submissionDateTime_ttl_idx")
           .expireAfter(configuration.get[Duration]("mongodb.ttl").toMinutes, TimeUnit.MINUTES)
+      ),
+      IndexModel(
+        Indexes.ascending("submissionCaseId"),
+        IndexOptions()
+          .name("submissionCaseId_idx")
       )
     )
 }

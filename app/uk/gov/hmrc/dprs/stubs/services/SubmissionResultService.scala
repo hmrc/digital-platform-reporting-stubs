@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.dprs.stubs.services
 
-import generated.{AEOI, BREResponse_Type, ErrorDetail_Type, FileError_Type, GenericStatusMessage_Type, RecordError_Type, RequestCommon_Type, RequestDetail_Type, ValidationErrors_Type, ValidationResult_Type}
+import generated.{AEOI, BREResponse_Type, ErrorDetail_Type, FileError_Type, GenericStatusMessage_Type, RecordError_Type, RequestCommon_Type, RequestCommon_TypeType, RequestDetail_Type, RequestDetail_TypeType, ValidationErrors_Type, ValidationResult_Type}
 import org.apache.pekko.Done
 import org.apache.pekko.actor.{ActorSystem, Cancellable, Scheduler}
 import play.api.{Configuration, Logging}
@@ -129,13 +129,13 @@ class SubmissionResultService @Inject() (
 
   private def successfulResponse(submissionId: String): BREResponse_Type =
     BREResponse_Type(
-      requestCommon = RequestCommon_Type(
+      requestCommon = RequestCommon_TypeType(
         receiptDate = scalaxb.Helper.toCalendar(DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(LocalDateTime.now())),
         regime = AEOI,
         conversationID = submissionId,
         schemaVersion = "1.0.0"
       ),
-      requestDetail = RequestDetail_Type(
+      requestDetail = RequestDetail_TypeType(
         GenericStatusMessage = GenericStatusMessage_Type(
           ValidationErrors = ValidationErrors_Type(
             FileError = Seq.empty,
@@ -150,13 +150,13 @@ class SubmissionResultService @Inject() (
 
   private def failedResponse(submissionId: String): BREResponse_Type =
     BREResponse_Type(
-      requestCommon = RequestCommon_Type(
+      requestCommon = RequestCommon_TypeType(
         receiptDate = scalaxb.Helper.toCalendar(DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(LocalDateTime.now())),
         regime = AEOI,
         conversationID = submissionId,
         schemaVersion = "1.0.0"
       ),
-      requestDetail = RequestDetail_Type(
+      requestDetail = RequestDetail_TypeType(
         GenericStatusMessage = GenericStatusMessage_Type(
           ValidationErrors = ValidationErrors_Type(
             FileError = Seq(FileError_Type(
