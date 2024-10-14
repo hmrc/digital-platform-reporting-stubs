@@ -29,8 +29,10 @@ final case class SubmissionSummary(subscriptionId: String,
                                    operatorName: String,
                                    reportingPeriod: String,
                                    submissionDateTime: Instant,
+                                   submissionCaseId: String,
                                    submissionStatus: SubmissionStatus,
-                                   assumingReporterName: Option[String])
+                                   assumingReporterName: Option[String],
+                                   body: String)
 
 object SubmissionSummary {
 
@@ -46,7 +48,8 @@ object SubmissionSummary {
     (__ \ "pOName").write[String] and
     (__ \ "reportingYear").write[String] and
     (__ \ "submissionDateTime").write[Instant] and
+    (__ \ "submissionCaseId").write[String] and
     (__ \ "submissionStatus").write[SubmissionStatus] and
     (__ \ "assumingReporterName").writeNullable[String]
-  )(o => (o.submissionId, o.fileName, o.operatorId, o.operatorName, o.reportingPeriod, o.submissionDateTime, o.submissionStatus, o.assumingReporterName))
+  )(o => (o.submissionId, o.fileName, o.operatorId, o.operatorName, o.reportingPeriod, o.submissionDateTime, o.submissionCaseId, o.submissionStatus, o.assumingReporterName))
 }

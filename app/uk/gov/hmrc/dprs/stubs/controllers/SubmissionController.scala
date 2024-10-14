@@ -16,19 +16,21 @@
 
 package uk.gov.hmrc.dprs.stubs.controllers
 
-import generated.{CorrectableOtherRPO_Type, DPISubmissionRequest_Type, OtherPlatformOperators_TypeSequence1}
+import generated.{CorrectableOtherRPO_Type, DPISubmissionRequest_Type, DPI_OECD, OtherPlatformOperators_TypeSequence1, SuccessType, Generated_SuccessTypeFormat}
 import play.api.Logging
 import play.api.libs.json.Json
-import play.api.mvc.{Action, ControllerComponents}
+import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import uk.gov.hmrc.dprs.stubs.models.submission.{SubmissionResponse, SubmissionStatus, SubmissionSummary, ViewSubmissionsRequest}
 import uk.gov.hmrc.dprs.stubs.repositories.SubmissionRepository
 import uk.gov.hmrc.dprs.stubs.services.SubmissionResultService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
-import java.time.Clock
+import java.time.format.DateTimeFormatter
+import java.time.{Clock, LocalDateTime, Month}
+import java.util.UUID
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
-import scala.xml.NodeSeq
+import scala.xml.{NodeSeq, Utility}
 
 @Singleton
 class SubmissionController @Inject()(
@@ -65,6 +67,24 @@ class SubmissionController @Inject()(
       }
     }
   }
+
+  def getByCaseId(caseId: String): Action[AnyContent] = Action.async { implicit request =>
+    submissionRepository.getByCaseId(caseId).map {
+      _.map { submission =>
+
+        val successType = SuccessType(
+          processingDate = scalaxb.Helper.toCalendar(DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(LocalDateTime.now())),
+          DPI_OECD = scalaxb.fromXML[DPI_OECD](scala.xml.XML.loadString(submission.body))
+        )
+
+        val body = scalaxb.toXML[SuccessType](successType, "success_type", generated.defaultScope)
+
+        Ok(body)
+      }.getOrElse {
+        NotFound
+      }
+    }
+  }
   
   private def buildSubmissionSummary(request: DPISubmissionRequest_Type): SubmissionSummary = {
 
@@ -87,8 +107,10 @@ class SubmissionController @Inject()(
       operatorName = request.requestDetail.DPI_OECD.DPIBody.head.PlatformOperator.Name.head.value,
       reportingPeriod = request.requestDetail.DPI_OECD.MessageSpec.ReportingPeriod.getYear.toString,
       submissionDateTime = clock.instant(),
+      submissionCaseId = UUID.randomUUID().toString,
       submissionStatus = SubmissionStatus.Pending,
-      assumingReporterName = assumingOperatorName
+      assumingReporterName = assumingOperatorName,
+      body = Utility.trim(scalaxb.toXML(request.requestDetail.DPI_OECD, Some("urn:oecd:ties:dpi:v1"), Some("DPI_OECD"), generated.defaultScope).head).toString
     )
   }
 }

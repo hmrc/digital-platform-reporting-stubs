@@ -15,4 +15,6 @@ GET         /dac6/dprs9302/v1/:subscriptionId/:operatorId       uk.gov.hmrc.dprs
 POST        /dac6/dprs0502/v1                                   uk.gov.hmrc.dprs.stubs.controllers.SubmissionController.submit()
 POST        /dac6/dprs0503/v1                                   uk.gov.hmrc.dprs.stubs.controllers.SubmissionController.list()
 
+GET         /dac6/dprs0504/v1/:caseId                           uk.gov.hmrc.dprs.stubs.controllers.SubmissionController.getByCaseId(caseId: String)
+
 POST        /sdes/submission/callback                           uk.gov.hmrc.dprs.stubs.controllers.SdesSubmissionCallbackController.callback()
