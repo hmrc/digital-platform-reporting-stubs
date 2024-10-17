@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.dprs.stubs.controllers
 
-import generated.{CorrectableOtherRPO_Type, DPISubmissionRequest_Type, DPI_OECD, OtherPlatformOperators_TypeSequence1, SuccessType, Generated_SuccessTypeFormat}
+import generated.{DPISubmissionRequest_Type, OtherPlatformOperators_TypeSequence1}
 import play.api.Logging
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
@@ -25,8 +25,7 @@ import uk.gov.hmrc.dprs.stubs.repositories.SubmissionRepository
 import uk.gov.hmrc.dprs.stubs.services.SubmissionResultService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
-import java.time.format.DateTimeFormatter
-import java.time.{Clock, LocalDateTime, Month}
+import java.time.Clock
 import java.util.UUID
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
@@ -71,15 +70,7 @@ class SubmissionController @Inject()(
   def getByCaseId(caseId: String): Action[AnyContent] = Action.async { implicit request =>
     submissionRepository.getByCaseId(caseId).map {
       _.map { submission =>
-
-        val successType = SuccessType(
-          processingDate = scalaxb.Helper.toCalendar(DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(LocalDateTime.now())),
-          DPI_OECD = scalaxb.fromXML[DPI_OECD](scala.xml.XML.loadString(submission.body))
-        )
-
-        val body = scalaxb.toXML[SuccessType](successType, "success_type", generated.defaultScope)
-
-        Ok(body)
+        Ok(submission.body)
       }.getOrElse {
         NotFound
       }

@@ -129,13 +129,13 @@ class SubmissionResultService @Inject() (
 
   private def successfulResponse(submissionId: String): BREResponse_Type =
     BREResponse_Type(
-      requestCommon = RequestCommon_TypeType(
+      requestCommon = RequestCommon_Type(
         receiptDate = scalaxb.Helper.toCalendar(DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(LocalDateTime.now())),
         regime = AEOI,
         conversationID = submissionId,
         schemaVersion = "1.0.0"
       ),
-      requestDetail = RequestDetail_TypeType(
+      requestDetail = RequestDetail_Type(
         GenericStatusMessage = GenericStatusMessage_Type(
           ValidationErrors = ValidationErrors_Type(
             FileError = Seq.empty,
@@ -150,13 +150,13 @@ class SubmissionResultService @Inject() (
 
   private def failedResponse(submissionId: String): BREResponse_Type =
     BREResponse_Type(
-      requestCommon = RequestCommon_TypeType(
+      requestCommon = RequestCommon_Type(
         receiptDate = scalaxb.Helper.toCalendar(DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(LocalDateTime.now())),
         regime = AEOI,
         conversationID = submissionId,
         schemaVersion = "1.0.0"
       ),
-      requestDetail = RequestDetail_TypeType(
+      requestDetail = RequestDetail_Type(
         GenericStatusMessage = GenericStatusMessage_Type(
           ValidationErrors = ValidationErrors_Type(
             FileError = Seq(FileError_Type(
