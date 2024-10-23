@@ -40,7 +40,8 @@ class SubmissionRepository @Inject()(
     mongoComponent = mongoComponent,
     domainFormat   = SubmissionSummary.mongoFormat,
     indexes        = indexes(configuration),
-    extraCodecs    = Codecs.playFormatSumCodecs(SubmissionStatus.jsonFormat)
+    extraCodecs    = Codecs.playFormatSumCodecs(SubmissionStatus.jsonFormat),
+    replaceIndexes = true
   ) {
 
   def create(submission: SubmissionSummary): Future[Done] =

@@ -38,7 +38,8 @@ class SubscriptionRepository @Inject()(mongoComponent: MongoComponent,
     collectionName = "subscriptions",
     mongoComponent = mongoComponent,
     domainFormat   = Subscription.format,
-    indexes        = indexes(configuration)
+    indexes        = indexes(configuration),
+    replaceIndexes = true
   ) {
 
   def create(subscription: Subscription): Future[Done] =
