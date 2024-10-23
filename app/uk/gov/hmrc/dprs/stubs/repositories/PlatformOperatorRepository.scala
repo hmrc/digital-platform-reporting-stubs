@@ -39,7 +39,8 @@ class PlatformOperatorRepository @Inject()(
     collectionName = "platform-operators",
     mongoComponent = mongoComponent,
     domainFormat   = PlatformOperator.mongoFormats,
-    indexes        = indexes(configuration)
+    indexes        = indexes(configuration),
+    replaceIndexes = true
   ) {
 
   private def byIds(subscriptionId: String, operatorId: String) =
