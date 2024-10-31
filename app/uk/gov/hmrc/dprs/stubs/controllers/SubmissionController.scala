@@ -20,9 +20,9 @@ import generated.{DPISubmissionRequest_Type, OtherPlatformOperators_TypeSequence
 import play.api.Logging
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
-import uk.gov.hmrc.dprs.stubs.models.submission.{SubmissionResponse, SubmissionStatus, SubmissionSummary, ViewSubmissionsRequest}
+import uk.gov.hmrc.dprs.stubs.models.submission.{SubmissionStatus, SubmissionSummary, ViewSubmissionsRequest}
 import uk.gov.hmrc.dprs.stubs.repositories.SubmissionRepository
-import uk.gov.hmrc.dprs.stubs.services.SubmissionResultService
+import uk.gov.hmrc.dprs.stubs.services.{ListSubmissionsService, SubmissionResultService}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import java.time.Clock
@@ -36,6 +36,7 @@ class SubmissionController @Inject()(
                                       cc: ControllerComponents,
                                       submissionResultService: SubmissionResultService,
                                       submissionRepository: SubmissionRepository,
+                                      listSubmissionsService: ListSubmissionsService,
                                       clock: Clock
                                     )(implicit val ec: ExecutionContext) extends BackendController(cc) with Logging {
 
@@ -54,13 +55,9 @@ class SubmissionController @Inject()(
   }
 
   def list(): Action[ViewSubmissionsRequest] = Action(parse.json[ViewSubmissionsRequest]).async { implicit request =>
-    submissionRepository.list(request.body.subscriptionId).map { submissions =>
-
-      val filteredSubmissions =
-        submissions.filter(_.assumingReporterName.isDefined == request.body.assumedReporting)
-
-      if (filteredSubmissions.nonEmpty) {
-        Ok(Json.toJson(SubmissionResponse(filteredSubmissions)))
+    listSubmissionsService.list(request.body).map { response =>
+      if (response.submissions.nonEmpty) {
+        Ok(Json.toJson(response))
       } else {
         UnprocessableEntity
       }
