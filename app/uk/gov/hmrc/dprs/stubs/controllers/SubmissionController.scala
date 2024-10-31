@@ -29,6 +29,7 @@ import java.time.Clock
 import java.util.UUID
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
+import scala.util.Try
 import scala.xml.{NodeSeq, Utility}
 
 @Singleton
@@ -46,7 +47,9 @@ class SubmissionController @Inject()(
     val submissionSummary = buildSubmissionSummary(submissionRequest)
 
     if (submissionRequest.requestDetail.DPI_OECD.MessageSpec.MessageRefId == "fail") {
-      submissionResultService.scheduleSaveAndRespondFailure(submissionSummary)
+      val numberOfFileErrors = Try(submissionRequest.requestDetail.DPI_OECD.MessageSpec.Warning.get.toInt).getOrElse(1)
+      val numberOfRowErrors = Try(submissionRequest.requestDetail.DPI_OECD.MessageSpec.Contact.get.toInt).getOrElse(1)
+      submissionResultService.scheduleSaveAndRespondFailure(submissionSummary, numberOfFileErrors, numberOfRowErrors)
     } else {
       submissionResultService.scheduleSaveAndRespondSuccess(submissionSummary)
     }

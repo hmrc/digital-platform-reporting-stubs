@@ -16,18 +16,23 @@
 
 package uk.gov.hmrc.dprs.stubs.services
 
+import com.google.common.base.Charsets
 import generated.{AEOI, BREResponse_Type, ErrorDetail_Type, FileError_Type, GenericStatusMessage_Type, RecordError_Type, RequestCommon_Type, RequestCommon_TypeType, RequestDetail_Type, RequestDetail_TypeType, ValidationErrors_Type, ValidationResult_Type}
 import org.apache.pekko.Done
 import org.apache.pekko.actor.{ActorSystem, Cancellable, Scheduler}
+import org.apache.pekko.util.ByteString
 import play.api.{Configuration, Logging}
 import play.api.http.Status.NO_CONTENT
+import play.api.libs.json.Json
 import uk.gov.hmrc.dprs.stubs.config.Service
+import uk.gov.hmrc.dprs.stubs.models.ResultFile
+import uk.gov.hmrc.dprs.stubs.models.sdes.{NotificationCallback, NotificationType}
 import uk.gov.hmrc.dprs.stubs.models.submission.{SubmissionStatus, SubmissionSummary}
-import uk.gov.hmrc.dprs.stubs.repositories.SubmissionRepository
+import uk.gov.hmrc.dprs.stubs.repositories.{ResultFileRepository, SubmissionRepository}
 import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, StringContextOps, UpstreamErrorResponse}
 
-import java.time.LocalDateTime
+import java.time.{Instant, LocalDateTime}
 import java.time.format.DateTimeFormatter
 import java.util.UUID
 import javax.inject.{Inject, Singleton}
@@ -36,12 +41,13 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
 @Singleton
-class SubmissionResultService @Inject() (
-                                          configuration: Configuration,
-                                          httpClient: HttpClientV2,
-                                          actorSystem: ActorSystem,
-                                          submissionRepository: SubmissionRepository
-                                        )(implicit ec: ExecutionContext) extends Logging {
+class SubmissionResultService @Inject()(
+                                         configuration: Configuration,
+                                         httpClient: HttpClientV2,
+                                         actorSystem: ActorSystem,
+                                         submissionRepository: SubmissionRepository,
+                                         resultFilesRepository: ResultFileRepository
+                                       )(implicit ec: ExecutionContext) extends Logging {
 
   private val digitalPlatformReporting: Service = configuration.get[Service]("microservice.services.digital-platform-reporting")
   private val callbackAuthToken: String = configuration.get[String]("result-callback-auth-token")
@@ -51,9 +57,6 @@ class SubmissionResultService @Inject() (
 
   def scheduleSuccess(submissionId: String): Cancellable =
     scheduleResponse(submissionId, successfulResponse(submissionId))
-
-  def scheduleFailure(submissionId: String): Cancellable =
-    scheduleResponse(submissionId, failedResponse(submissionId))
 
   private def scheduleResponse(submissionId: String, response: BREResponse_Type): Cancellable = {
     scheduler.scheduleOnce(resultDelay) {
@@ -72,8 +75,8 @@ class SubmissionResultService @Inject() (
   def scheduleSaveAndRespondSuccess(submission: SubmissionSummary): Cancellable =
     scheduleSaveAndRespond(submission, SubmissionStatus.Success, successfulResponse(submission.submissionId))
 
-  def scheduleSaveAndRespondFailure(submission: SubmissionSummary): Cancellable =
-    scheduleSaveAndRespond(submission, SubmissionStatus.Rejected, failedResponse(submission.submissionId))
+  def scheduleSaveAndRespondFailure(submission: SubmissionSummary, numberOfFileErrors: Int, numberOfRowErrors: Int): Cancellable =
+    scheduleSaveAndRespond(submission, SubmissionStatus.Rejected, failedResponse(submission.submissionId, numberOfFileErrors, numberOfRowErrors))
 
   private def scheduleSaveAndRespond(submission: SubmissionSummary, endStatus: SubmissionStatus, response: BREResponse_Type): Cancellable = {
     scheduler.scheduleOnce(resultDelay) {
@@ -109,23 +112,56 @@ class SubmissionResultService @Inject() (
   }
 
   private def returnResult(submissionId: String, result: BREResponse_Type): Future[Done] = {
-    httpClient.post(url"$digitalPlatformReporting/dprs/validation-result")(HeaderCarrier())
-      .setHeader(
-        "X-Correlation-ID" -> UUID.randomUUID().toString,
-        "X-Conversation-ID" -> submissionId,
-        "Authorization" -> s"Bearer $callbackAuthToken",
-      )
-      .withBody(scalaxb.toXML(result, "BREResponse", generated.defaultScope))
-      .execute[HttpResponse]
-      .flatMap { response =>
-        response.status match {
-          case NO_CONTENT =>
-            Future.successful(Done)
-          case _ =>
-            Future.failed(UpstreamErrorResponse("Unexpected response", response.status))
+
+    val xml = scalaxb.toXML(result, "BREResponse", generated.defaultScope)
+    val bytes = xml.toString.getBytes(Charsets.UTF_8)
+
+    logger.info(s"Result response is ${bytes.size} long")
+    if (bytes.size <= 3_000_000) {
+      httpClient.post(url"$digitalPlatformReporting/dprs/validation-result")(HeaderCarrier())
+        .setHeader(
+          "X-Correlation-ID" -> UUID.randomUUID().toString,
+          "X-Conversation-ID" -> submissionId,
+          "Authorization" -> s"Bearer $callbackAuthToken",
+        )
+        .withBody(xml)
+        .execute[HttpResponse]
+        .flatMap { response =>
+          response.status match {
+            case NO_CONTENT =>
+              Future.successful(Done)
+            case _ =>
+              Future.failed(UpstreamErrorResponse("Unexpected response", response.status))
+          }
         }
-      }
+    } else {
+
+      val resultFile = ResultFile(
+        fileName = UUID.randomUUID().toString,
+        bytes = bytes,
+        size = bytes.size,
+        metadata = Map.empty,
+        createdOn = Instant.now()
+      )
+
+      val notification = NotificationCallback(
+        notification = NotificationType.FileReady,
+        filename = resultFile.fileName,
+        correlationID = UUID.randomUUID().toString,
+        failureReason = None
+      )
+
+      for {
+        _ <- resultFilesRepository.save(resultFile)
+        _ <- sendNotification(notification)(HeaderCarrier())
+      } yield Done
+    }
   }
+
+  private def sendNotification(notification: NotificationCallback)(implicit hc: HeaderCarrier): Future[HttpResponse] =
+    httpClient.post(url"$digitalPlatformReporting/sdes/submission/callback")
+      .withBody(Json.toJson(notification))
+      .execute
 
   private def successfulResponse(submissionId: String): BREResponse_Type =
     BREResponse_Type(
@@ -148,7 +184,7 @@ class SubmissionResultService @Inject() (
       )
     )
 
-  private def failedResponse(submissionId: String): BREResponse_Type =
+  private def failedResponse(submissionId: String, numberOfFileErrors: Int, numberOfRowErrors: Int): BREResponse_Type =
     BREResponse_Type(
       requestCommon = RequestCommon_Type(
         receiptDate = scalaxb.Helper.toCalendar(DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(LocalDateTime.now())),
@@ -159,15 +195,19 @@ class SubmissionResultService @Inject() (
       requestDetail = RequestDetail_Type(
         GenericStatusMessage = GenericStatusMessage_Type(
           ValidationErrors = ValidationErrors_Type(
-            FileError = Seq(FileError_Type(
-              Code = "001",
-              Details = Some(ErrorDetail_Type("detail"))
-            )),
-            RecordError = Seq(RecordError_Type(
-              Code = "002",
-              Details = Some(ErrorDetail_Type("detail 2")),
-              DocRefIDInError = Seq("1", "2")
-            ))
+            FileError = (0 until numberOfFileErrors).map { _ =>
+              FileError_Type(
+                Code = "001",
+                Details = Some(ErrorDetail_Type("detail"))
+              )
+            },
+            RecordError = (0 until numberOfRowErrors).map { _ =>
+              RecordError_Type(
+                Code = "002",
+                Details = Some(ErrorDetail_Type("detail 2")),
+                DocRefIDInError = Seq("1", "2")
+              )
+            }
           ),
           ValidationResult = ValidationResult_Type(
             Status = generated.Rejected
