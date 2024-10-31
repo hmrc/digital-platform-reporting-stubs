@@ -62,8 +62,9 @@ class ListSubmissionsService @Inject()(repository: SubmissionRepository)
 
       val sortedSubmissions = if (request.sortOrder == Ascending) preSortedSubmissions else preSortedSubmissions.reverse
       val resultsCount = sortedSubmissions.size
-      val paginatedResults = sortedSubmissions.slice((request.pageNumber - 1) * 10, (request.pageNumber) * 10)
-
-      SubmissionResponse(resultsCount, paginatedResults)
+//      val paginatedResults = sortedSubmissions.slice((request.pageNumber - 1) * 10, (request.pageNumber) * 10)
+//
+//      SubmissionResponse(resultsCount, paginatedResults)
+      SubmissionResponse(resultsCount, sortedSubmissions)
     }
 }
