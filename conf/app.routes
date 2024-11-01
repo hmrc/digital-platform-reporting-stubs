@@ -18,3 +18,6 @@ POST        /dac6/dprs0503/v1                                   uk.gov.hmrc.dprs
 GET         /dac6/dprs0504/v1/:caseId                           uk.gov.hmrc.dprs.stubs.controllers.SubmissionController.getByCaseId(caseId: String)
 
 POST        /sdes/submission/callback                           uk.gov.hmrc.dprs.stubs.controllers.SdesSubmissionCallbackController.callback()
+
+GET         /files-available/list/:informationType              uk.gov.hmrc.dprs.stubs.controllers.ResultFilesController.list(informationType: String)
+GET         /result-files/:fileName                             uk.gov.hmrc.dprs.stubs.controllers.ResultFilesController.get(fileName: String)
