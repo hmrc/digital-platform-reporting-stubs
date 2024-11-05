@@ -75,10 +75,12 @@ class ListSubmissionsServiceSpec extends AnyFreeSpec with Matchers with MockitoS
 
       val result1 = service.list(request1).futureValue
       val result2 = service.list(request2).futureValue
-      result1.resultsCount mustEqual 1
-      result2.resultsCount mustEqual 1
+      result1.matchingResultsCount mustEqual 1
+      result2.matchingResultsCount mustEqual 1
       result1.submissions must contain only submission1
       result2.submissions must contain only submission2
+      result1.totalResultsCount mustEqual 2
+      result2.totalResultsCount mustEqual 2
     }
 
     "must filter results by reporting period" in {
@@ -91,8 +93,9 @@ class ListSubmissionsServiceSpec extends AnyFreeSpec with Matchers with MockitoS
       val request = ViewSubmissionsRequest("subscriptionId", false, 1, SubmissionDate, Ascending, Some("2024"), None, None, Nil)
 
       val result = service.list(request).futureValue
-      result.resultsCount mustEqual 1
+      result.matchingResultsCount mustEqual 1
       result.submissions must contain only submission1
+      result.totalResultsCount mustEqual 2
     }
 
     "must filter results by operatorId" in {
@@ -105,8 +108,9 @@ class ListSubmissionsServiceSpec extends AnyFreeSpec with Matchers with MockitoS
       val request = ViewSubmissionsRequest("subscriptionId", false, 1, SubmissionDate, Ascending, None, Some("1"), None, Nil)
 
       val result = service.list(request).futureValue
-      result.resultsCount mustEqual 1
+      result.matchingResultsCount mustEqual 1
       result.submissions must contain only submission1
+      result.totalResultsCount mustEqual 2
     }
 
     "must filter results by filename" in {
@@ -119,8 +123,9 @@ class ListSubmissionsServiceSpec extends AnyFreeSpec with Matchers with MockitoS
       val request = ViewSubmissionsRequest("subscriptionId", false, 1, SubmissionDate, Ascending, None, None, Some("file1"), Nil)
 
       val result = service.list(request).futureValue
-      result.resultsCount mustEqual 1
+      result.matchingResultsCount mustEqual 1
       result.submissions must contain only submission1
+      result.totalResultsCount mustEqual 2
     }
 
     "must filter requests by statuses" in {
@@ -136,10 +141,12 @@ class ListSubmissionsServiceSpec extends AnyFreeSpec with Matchers with MockitoS
 
       val result1 = service.list(request1).futureValue
       val result2 = service.list(request2).futureValue
-      result1.resultsCount mustEqual 1
-      result2.resultsCount mustEqual 3
+      result1.matchingResultsCount mustEqual 1
+      result2.matchingResultsCount mustEqual 3
       result1.submissions must contain only submission1
       result2.submissions must contain theSameElementsAs Seq(submission1, submission2, submission3)
+      result1.totalResultsCount mustEqual 3
+      result2.totalResultsCount mustEqual 3
     }
 
     "must sort by submission date" in {
@@ -155,10 +162,12 @@ class ListSubmissionsServiceSpec extends AnyFreeSpec with Matchers with MockitoS
 
       val result1 = service.list(request1).futureValue
       val result2 = service.list(request2).futureValue
-      result1.resultsCount mustEqual 3
-      result2.resultsCount mustEqual 3
+      result1.matchingResultsCount mustEqual 3
+      result2.matchingResultsCount mustEqual 3
       result1.submissions must contain theSameElementsInOrderAs Seq(submission1, submission2, submission3)
       result2.submissions must contain theSameElementsInOrderAs Seq(submission3, submission2, submission1)
+      result1.totalResultsCount mustEqual 3
+      result2.totalResultsCount mustEqual 3
     }
 
     "must sort by operator id" in {
@@ -174,10 +183,12 @@ class ListSubmissionsServiceSpec extends AnyFreeSpec with Matchers with MockitoS
 
       val result1 = service.list(request1).futureValue
       val result2 = service.list(request2).futureValue
-      result1.resultsCount mustEqual 3
-      result2.resultsCount mustEqual 3
+      result1.matchingResultsCount mustEqual 3
+      result2.matchingResultsCount mustEqual 3
       result1.submissions must contain theSameElementsInOrderAs Seq(submission1, submission2, submission3)
       result2.submissions must contain theSameElementsInOrderAs Seq(submission3, submission2, submission1)
+      result1.totalResultsCount mustEqual 3
+      result2.totalResultsCount mustEqual 3
     }
 
     "must sort by reporting period" in {
@@ -193,10 +204,12 @@ class ListSubmissionsServiceSpec extends AnyFreeSpec with Matchers with MockitoS
 
       val result1 = service.list(request1).futureValue
       val result2 = service.list(request2).futureValue
-      result1.resultsCount mustEqual 3
-      result2.resultsCount mustEqual 3
+      result1.matchingResultsCount mustEqual 3
+      result2.matchingResultsCount mustEqual 3
       result1.submissions must contain theSameElementsInOrderAs Seq(submission1, submission2, submission3)
       result2.submissions must contain theSameElementsInOrderAs Seq(submission3, submission2, submission1)
+      result1.totalResultsCount mustEqual 3
+      result2.totalResultsCount mustEqual 3
     }
 
     "must return results in pages of 10" in {
@@ -214,15 +227,42 @@ class ListSubmissionsServiceSpec extends AnyFreeSpec with Matchers with MockitoS
       val result1 = service.list(request1).futureValue
       val result2 = service.list(request2).futureValue
       val result3 = service.list(request3).futureValue
-      result1.resultsCount mustEqual 95
-      result2.resultsCount mustEqual 95
-      result3.resultsCount mustEqual 95
+      result1.matchingResultsCount mustEqual 95
+      result2.matchingResultsCount mustEqual 95
+      result3.matchingResultsCount mustEqual 95
       result1.submissions.size mustEqual 10
       result2.submissions.size mustEqual 10
       result3.submissions.size mustEqual 5
       result1.submissions must contain theSameElementsInOrderAs (1 to 10).map(i => submission.copy(submissionDateTime = instant.plusSeconds(i), submissionId = i.toString))
       result2.submissions must contain theSameElementsInOrderAs (11 to 20).map(i => submission.copy(submissionDateTime = instant.plusSeconds(i), submissionId = i.toString))
       result3.submissions must contain theSameElementsInOrderAs (91 to 95).map(i => submission.copy(submissionDateTime = instant.plusSeconds(i), submissionId = i.toString))
+      result1.totalResultsCount mustEqual 95
+      result2.totalResultsCount mustEqual 95
+      result3.totalResultsCount mustEqual 95
+    }
+
+    "must return an empty list when no records exist" in {
+
+      when(mockRepository.list(eqTo("subscriptionId"))) thenReturn Future.successful(Nil)
+
+      val request = ViewSubmissionsRequest("subscriptionId", false, 1, SubmissionDate, Ascending, None, None, None, Nil)
+
+      val result = service.list(request).futureValue
+      result.matchingResultsCount mustEqual 0
+      result.totalResultsCount mustEqual 0
+      result.submissions mustBe empty
+    }
+
+    "must return an empty list when records exist but none match the filter" in {
+
+      when(mockRepository.list(eqTo("subscriptionId"))) thenReturn Future.successful(Seq(submission))
+
+      val request = ViewSubmissionsRequest("subscriptionId", false, 1, SubmissionDate, Ascending, None, Some("other operator id"), None, Nil)
+
+      val result = service.list(request).futureValue
+      result.matchingResultsCount mustEqual 0
+      result.totalResultsCount mustEqual 1
+      result.submissions mustBe empty
     }
   }
 }

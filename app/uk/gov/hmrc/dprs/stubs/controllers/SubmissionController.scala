@@ -59,7 +59,7 @@ class SubmissionController @Inject()(
 
   def list(): Action[ViewSubmissionsRequest] = Action(parse.json[ViewSubmissionsRequest]).async { implicit request =>
     listSubmissionsService.list(request.body).map { response =>
-      if (response.submissions.nonEmpty) {
+      if (response.totalResultsCount > 0) {
         Ok(Json.toJson(response))
       } else {
         UnprocessableEntity
