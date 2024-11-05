@@ -64,6 +64,6 @@ class ListSubmissionsService @Inject()(repository: SubmissionRepository)
       val resultsCount = sortedSubmissions.size
       val paginatedResults = sortedSubmissions.slice((request.pageNumber - 1) * 10, (request.pageNumber) * 10)
 
-      SubmissionResponse(resultsCount, paginatedResults)
+      SubmissionResponse(resultsCount, submissions.size, paginatedResults)
     }
 }

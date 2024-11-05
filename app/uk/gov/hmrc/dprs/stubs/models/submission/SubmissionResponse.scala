@@ -19,7 +19,7 @@ package uk.gov.hmrc.dprs.stubs.models.submission
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
 
-final case class SubmissionResponse(resultsCount: Int, submissions: Seq[SubmissionSummary])
+final case class SubmissionResponse(matchingResultsCount: Int, totalResultsCount: Int, submissions: Seq[SubmissionSummary])
 
 object SubmissionResponse {
 
@@ -28,5 +28,5 @@ object SubmissionResponse {
   implicit lazy val writes: OWrites[SubmissionResponse] = (
     (__ \ "submissionsListResponse" \ "responseDetails" \ "submissionsList").write[Seq[SubmissionSummary]] and
     (__ \ "submissionsListResponse" \ "responseCommon" \ "resultsCount").write[Int]
-  )(o => (o.submissions, o.resultsCount))
+  )(o => (o.submissions, o.matchingResultsCount))
 }
