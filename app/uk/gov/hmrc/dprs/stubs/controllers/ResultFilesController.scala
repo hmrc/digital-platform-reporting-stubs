@@ -16,10 +16,13 @@
 
 package uk.gov.hmrc.dprs.stubs.controllers
 
+import play.api.Configuration
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
+import uk.gov.hmrc.dprs.stubs.config.Service
 import uk.gov.hmrc.dprs.stubs.models.{MetadataValue, SdesFile}
 import uk.gov.hmrc.dprs.stubs.repositories.ResultFileRepository
+import uk.gov.hmrc.http.StringContextOps
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import java.net.URL
@@ -29,8 +32,11 @@ import scala.concurrent.ExecutionContext
 @Singleton
 class ResultFilesController @Inject()(
                                      cc: ControllerComponents,
-                                     repository: ResultFileRepository
+                                     repository: ResultFileRepository,
+                                     configuration: Configuration
                                    )(implicit ec: ExecutionContext) extends BackendController(cc) {
+
+  private val stubsUrl = configuration.get[Service]("microservice.services.digital-platform-reporting-stubs")
 
   // Just ignoring information type as we don't need it at the moment
   def list(informationType: String): Action[AnyContent] = Action.async { implicit request =>
@@ -40,7 +46,7 @@ class ResultFilesController @Inject()(
         SdesFile(
           fileName = file.fileName,
           fileSize = file.size,
-          downloadUrl = new URL(routes.ResultFilesController.get(file.fileName).absoluteURL()),
+          downloadUrl = new URL(s"$stubsUrl${routes.ResultFilesController.get(file.fileName).url}"),
           metadata = file.metadata.map { case (key, value) =>
             MetadataValue(key, value)
           }.toSeq
