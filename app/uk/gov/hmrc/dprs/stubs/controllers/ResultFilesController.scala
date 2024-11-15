@@ -16,14 +16,19 @@
 
 package uk.gov.hmrc.dprs.stubs.controllers
 
+import org.apache.pekko.NotUsed
+import org.apache.pekko.stream.scaladsl.Source
+import org.apache.pekko.util.ByteString
 import play.api.Configuration
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import uk.gov.hmrc.dprs.stubs.config.Service
 import uk.gov.hmrc.dprs.stubs.models.{MetadataValue, SdesFile}
 import uk.gov.hmrc.dprs.stubs.repositories.ResultFileRepository
-import uk.gov.hmrc.http.StringContextOps
+import uk.gov.hmrc.objectstore.client.Path
+import uk.gov.hmrc.objectstore.client.play.PlayObjectStoreClient
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
+import uk.gov.hmrc.objectstore.client.play.Implicits._
 
 import java.net.URL
 import javax.inject.{Inject, Singleton}
@@ -33,7 +38,8 @@ import scala.concurrent.ExecutionContext
 class ResultFilesController @Inject()(
                                      cc: ControllerComponents,
                                      repository: ResultFileRepository,
-                                     configuration: Configuration
+                                     configuration: Configuration,
+                                     objectStoreClient: PlayObjectStoreClient
                                    )(implicit ec: ExecutionContext) extends BackendController(cc) {
 
   private val stubsUrl = configuration.get[Service]("microservice.services.digital-platform-reporting-stubs")
@@ -58,9 +64,9 @@ class ResultFilesController @Inject()(
   }
 
   def get(fileName: String): Action[AnyContent] = Action.async { implicit request =>
-    repository.get(fileName).map {
+    objectStoreClient.getObject[Source[ByteString, NotUsed]](Path.Directory("results").file(fileName)).map {
       _.map { file =>
-        Ok(file.bytes)
+        Ok.chunked(file.content)
       }.getOrElse(NotFound)
     }
   }

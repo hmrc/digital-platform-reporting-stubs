@@ -17,13 +17,12 @@
 package uk.gov.hmrc.dprs.stubs.services
 
 import com.google.common.base.Charsets
-import generated.{AEOI, BREResponse_Type, ErrorDetail_Type, FileError_Type, GenericStatusMessage_Type, RecordError_Type, RequestCommon_Type, RequestCommon_TypeType, RequestDetail_Type, RequestDetail_TypeType, ValidationErrors_Type, ValidationResult_Type}
+import generated.{AEOI, BREResponse_Type, ErrorDetail_Type, FileError_Type, GenericStatusMessage_Type, RecordError_Type, RequestCommon_Type, RequestDetail_Type, ValidationErrors_Type, ValidationResult_Type}
 import org.apache.pekko.Done
 import org.apache.pekko.actor.{ActorSystem, Cancellable, Scheduler}
-import org.apache.pekko.util.ByteString
-import play.api.{Configuration, Logging}
 import play.api.http.Status.NO_CONTENT
 import play.api.libs.json.Json
+import play.api.{Configuration, Logging}
 import uk.gov.hmrc.dprs.stubs.config.Service
 import uk.gov.hmrc.dprs.stubs.models.ResultFile
 import uk.gov.hmrc.dprs.stubs.models.sdes.{NotificationCallback, NotificationType}
@@ -31,9 +30,12 @@ import uk.gov.hmrc.dprs.stubs.models.submission.{SubmissionStatus, SubmissionSum
 import uk.gov.hmrc.dprs.stubs.repositories.{ResultFileRepository, SubmissionRepository}
 import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, StringContextOps, UpstreamErrorResponse}
+import uk.gov.hmrc.objectstore.client.{Path, RetentionPeriod}
+import uk.gov.hmrc.objectstore.client.play.PlayObjectStoreClient
+import uk.gov.hmrc.objectstore.client.play.Implicits._
 
-import java.time.{Instant, LocalDateTime}
 import java.time.format.DateTimeFormatter
+import java.time.{Instant, LocalDateTime}
 import java.util.UUID
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.duration.FiniteDuration
@@ -46,7 +48,8 @@ class SubmissionResultService @Inject()(
                                          httpClient: HttpClientV2,
                                          actorSystem: ActorSystem,
                                          submissionRepository: SubmissionRepository,
-                                         resultFilesRepository: ResultFileRepository
+                                         resultFilesRepository: ResultFileRepository,
+                                         objectStoreClient: PlayObjectStoreClient
                                        )(implicit ec: ExecutionContext) extends Logging {
 
   private val digitalPlatformReporting: Service = configuration.get[Service]("microservice.services.digital-platform-reporting")
@@ -55,10 +58,10 @@ class SubmissionResultService @Inject()(
 
   private val scheduler: Scheduler = actorSystem.scheduler
 
-  def scheduleSuccess(submissionId: String): Cancellable =
+  def scheduleSuccess(submissionId: String)(implicit hc: HeaderCarrier): Cancellable =
     scheduleResponse(submissionId, successfulResponse(submissionId))
 
-  private def scheduleResponse(submissionId: String, response: BREResponse_Type): Cancellable = {
+  private def scheduleResponse(submissionId: String, response: BREResponse_Type)(implicit hc: HeaderCarrier): Cancellable = {
     scheduler.scheduleOnce(resultDelay) {
 
       logger.info(s"Returning callback from submission $submissionId")
@@ -72,13 +75,13 @@ class SubmissionResultService @Inject()(
     }
   }
 
-  def scheduleSaveAndRespondSuccess(submission: SubmissionSummary): Cancellable =
+  def scheduleSaveAndRespondSuccess(submission: SubmissionSummary)(implicit hc: HeaderCarrier): Cancellable =
     scheduleSaveAndRespond(submission, SubmissionStatus.Success, successfulResponse(submission.submissionId))
 
-  def scheduleSaveAndRespondFailure(submission: SubmissionSummary, numberOfFileErrors: Int, numberOfRowErrors: Int): Cancellable =
+  def scheduleSaveAndRespondFailure(submission: SubmissionSummary, numberOfFileErrors: Int, numberOfRowErrors: Int)(implicit hc: HeaderCarrier): Cancellable =
     scheduleSaveAndRespond(submission, SubmissionStatus.Rejected, failedResponse(submission.submissionId, numberOfFileErrors, numberOfRowErrors))
 
-  private def scheduleSaveAndRespond(submission: SubmissionSummary, endStatus: SubmissionStatus, response: BREResponse_Type): Cancellable = {
+  private def scheduleSaveAndRespond(submission: SubmissionSummary, endStatus: SubmissionStatus, response: BREResponse_Type)(implicit hc: HeaderCarrier): Cancellable = {
     scheduler.scheduleOnce(resultDelay) {
 
       logger.info(s"Saving submission to repository")
@@ -111,7 +114,7 @@ class SubmissionResultService @Inject()(
     }
   }
 
-  private def returnResult(submissionId: String, result: BREResponse_Type): Future[Done] = {
+  private def returnResult(submissionId: String, result: BREResponse_Type)(implicit hc: HeaderCarrier): Future[Done] = {
 
     val xml = scalaxb.toXML(result, "BREResponse", generated.defaultScope)
     val bytes = xml.toString.getBytes(Charsets.UTF_8)
@@ -138,7 +141,6 @@ class SubmissionResultService @Inject()(
 
       val resultFile = ResultFile(
         fileName = UUID.randomUUID().toString,
-        bytes = bytes,
         size = bytes.size,
         metadata = Map.empty,
         createdOn = Instant.now()
@@ -153,6 +155,7 @@ class SubmissionResultService @Inject()(
 
       for {
         _ <- resultFilesRepository.save(resultFile)
+        _ <- objectStoreClient.putObject(Path.File(Path.Directory("results"), resultFile.fileName), bytes, RetentionPeriod.OneDay)
         _ <- sendNotification(notification)(HeaderCarrier())
       } yield Done
     }

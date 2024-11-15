@@ -16,14 +16,23 @@
 
 package uk.gov.hmrc.dprs.stubs.config
 
-import com.google.inject.AbstractModule
+import play.api.inject.Binding
+import play.api.{Configuration, Environment}
 
 import java.time.Clock
 
-class Module extends AbstractModule {
+class Module extends play.api.inject.Module {
 
-  override def configure(): Unit = {
-    bind(classOf[AppConfig]).asEagerSingleton()
-    bind(classOf[Clock]).toInstance(Clock.systemUTC())
+  override def bindings(environment: Environment, configuration: Configuration): collection.Seq[Binding[_]] = {
+
+    val authTokenInitialiserBindings: Seq[Binding[_]] =
+      if (configuration.get[Boolean]("create-internal-auth-token-on-start")) {
+        Seq(bind[InternalAuthTokenInitialiser].to[InternalAuthTokenInitialiserImpl].eagerly())
+      } else Seq(bind[InternalAuthTokenInitialiser].to[NoOpInternalAuthTokenInitialiser].eagerly())
+
+    Seq(
+      bind[AppConfig].toSelf.eagerly(),
+      bind[Clock].toInstance(Clock.systemUTC()),
+    ) ++ authTokenInitialiserBindings
   }
 }

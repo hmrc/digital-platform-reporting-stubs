@@ -23,25 +23,12 @@ import java.time.Instant
 
 final case class ResultFile(
                              fileName: String,
-                             bytes: Array[Byte],
                              size: Long,
                              metadata: Map[String, String],
                              createdOn: Instant
                            )
 
 object ResultFile extends MongoJavatimeFormats.Implicits with MongoBinaryFormats.Implicits {
-
-  final case class WithoutContents(
-                                    fileName: String,
-                                    size: Long,
-                                    metadata: Map[String, String],
-                                    createdOn: Instant
-                                  )
-
-  object WithoutContents {
-
-    lazy val mongoFormat: OFormat[WithoutContents] = Json.format[WithoutContents]
-  }
 
   lazy val mongoFormat: OFormat[ResultFile] = Json.format[ResultFile]
 }

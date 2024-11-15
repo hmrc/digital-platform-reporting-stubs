@@ -35,7 +35,6 @@ class ResultFileRepository @Inject()(
     mongoComponent = mongoComponent,
     domainFormat = ResultFile.mongoFormat,
     indexes = ResultFileRepository.indexes,
-    extraCodecs = Seq(Codecs.playFormatCodec(ResultFile.WithoutContents.mongoFormat)),
     replaceIndexes = true
   ) {
 
@@ -44,8 +43,8 @@ class ResultFileRepository @Inject()(
       .toFuture()
       .map(_ => Done)
 
-  def list: Future[Seq[ResultFile.WithoutContents]] =
-    collection.find[ResultFile.WithoutContents]().projection(Projections.exclude("bytes"))
+  def list: Future[Seq[ResultFile]] =
+    collection.find[ResultFile]()
       .toFuture()
 
   def get(fileName: String): Future[Option[ResultFile]] =
