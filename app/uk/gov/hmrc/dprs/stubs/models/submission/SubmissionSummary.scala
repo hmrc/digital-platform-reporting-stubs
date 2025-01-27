@@ -25,9 +25,9 @@ import java.time.Instant
 final case class SubmissionSummary(subscriptionId: String,
                                    submissionId: String,
                                    fileName: String,
-                                   operatorId: String,
-                                   operatorName: String,
-                                   reportingPeriod: String,
+                                   operatorId: Option[String],
+                                   operatorName: Option[String],
+                                   reportingPeriod: Option[String],
                                    submissionDateTime: Instant,
                                    submissionCaseId: String,
                                    submissionStatus: SubmissionStatus,
@@ -44,9 +44,9 @@ object SubmissionSummary {
   lazy val downstreamWrites: OWrites[SubmissionSummary] = (
     (__ \ "conversationId").write[String] and
     (__ \ "fileName").write[String] and
-    (__ \ "pOId").write[String] and
-    (__ \ "pOName").write[String] and
-    (__ \ "reportingYear").write[String] and
+    (__ \ "pOId").writeNullable[String] and
+    (__ \ "pOName").writeNullable[String] and
+    (__ \ "reportingYear").writeNullable[String] and
     (__ \ "submissionDateTime").write[Instant] and
     (__ \ "submissionCaseId").write[String] and
     (__ \ "submissionStatus").write[SubmissionStatus] and
