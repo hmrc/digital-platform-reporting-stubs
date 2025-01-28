@@ -53,9 +53,9 @@ class ListSubmissionsServiceSpec extends AnyFreeSpec with Matchers with MockitoS
       subscriptionId = "subscriptionId",
       submissionId = "1",
       fileName = "file1",
-      operatorId = "1",
-      operatorName = "name",
-      reportingPeriod = "2024",
+      operatorId = Some("1"),
+      operatorName = Some("name"),
+      reportingPeriod = Some("2024"),
       submissionDateTime = instant,
       submissionCaseId = "id",
       submissionStatus = Success,
@@ -86,7 +86,7 @@ class ListSubmissionsServiceSpec extends AnyFreeSpec with Matchers with MockitoS
     "must filter results by reporting period" in {
 
       val submission1 = submission
-      val submission2 = submission.copy(reportingPeriod = "2025")
+      val submission2 = submission.copy(reportingPeriod = Some("2025"))
 
       when(mockRepository.list(eqTo("subscriptionId"))) thenReturn Future.successful(Seq(submission1, submission2))
 
@@ -101,7 +101,7 @@ class ListSubmissionsServiceSpec extends AnyFreeSpec with Matchers with MockitoS
     "must filter results by operatorId" in {
 
       val submission1 = submission
-      val submission2 = submission.copy(operatorId = "2")
+      val submission2 = submission.copy(operatorId = Some("2"))
 
       when(mockRepository.list(eqTo("subscriptionId"))) thenReturn Future.successful(Seq(submission1, submission2))
 
@@ -173,8 +173,8 @@ class ListSubmissionsServiceSpec extends AnyFreeSpec with Matchers with MockitoS
     "must sort by operator id" in {
 
       val submission1 = submission
-      val submission2 = submission.copy(operatorId = "2")
-      val submission3 = submission.copy(operatorId = "3")
+      val submission2 = submission.copy(operatorId = Some("2"))
+      val submission3 = submission.copy(operatorId = Some("3"))
 
       when(mockRepository.list(eqTo("subscriptionId"))) thenReturn Future.successful(Seq(submission1, submission2, submission3))
 
@@ -194,8 +194,8 @@ class ListSubmissionsServiceSpec extends AnyFreeSpec with Matchers with MockitoS
     "must sort by reporting period" in {
 
       val submission1 = submission
-      val submission2 = submission.copy(reportingPeriod = "2025")
-      val submission3 = submission.copy(reportingPeriod = "2026")
+      val submission2 = submission.copy(reportingPeriod = Some("2025"))
+      val submission3 = submission.copy(reportingPeriod = Some("2026"))
 
       when(mockRepository.list(eqTo("subscriptionId"))) thenReturn Future.successful(Seq(submission1, submission2, submission3))
 

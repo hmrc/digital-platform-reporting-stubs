@@ -31,11 +31,11 @@ class ListSubmissionsService @Inject()(repository: SubmissionRepository)
     repository.list(request.subscriptionId).map { submissions =>
 
       val reportingPeriodFilter: SubmissionSummary => Boolean = { submission =>
-        request.reportingPeriod.forall(_ == submission.reportingPeriod)
+        request.reportingPeriod.forall(period => submission.reportingPeriod.contains(period))
       }
 
       val operatorIdFilter: SubmissionSummary => Boolean = { submission =>
-        request.operatorId.forall(_ == submission.operatorId)
+        request.operatorId.forall(id => submission.operatorId.contains(id))
       }
 
       val fileNameFilter: SubmissionSummary => Boolean = { submission =>
