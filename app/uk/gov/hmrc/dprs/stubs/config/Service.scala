@@ -29,16 +29,13 @@ final case class Service(host: String, port: String, protocol: String, basePath:
 
 object Service {
 
-  implicit lazy val configLoader: ConfigLoader[Service] = ConfigLoader {
-    config =>
-      prefix =>
+  implicit lazy val configLoader: ConfigLoader[Service] = ConfigLoader { config => prefix =>
+    val service  = Configuration(config).get[Configuration](prefix)
+    val host     = service.get[String]("host")
+    val port     = service.get[String]("port")
+    val protocol = service.get[String]("protocol")
+    val basePath = service.getOptional[String]("basePath").getOrElse("")
 
-        val service  = Configuration(config).get[Configuration](prefix)
-        val host     = service.get[String]("host")
-        val port     = service.get[String]("port")
-        val protocol = service.get[String]("protocol")
-        val basePath = service.get[String]("basePath")
-
-        Service(host, port, protocol, basePath)
+    Service(host, port, protocol, basePath)
   }
 }

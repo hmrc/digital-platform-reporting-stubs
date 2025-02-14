@@ -1,25 +1,22 @@
-import play.core.PlayVersion
-import play.sbt.PlayImport._
-import sbt.Keys.libraryDependencies
-import sbt._
+import sbt.*
 
 object AppDependencies {
 
-  private val bootstrapVersion = "9.3.0"
-  private val hmrcMongoVersion = "2.2.0"
+  private val bootstrapVersion = "9.8.0"
+  private val hmrcMongoVersion = "2.5.0"
 
-  val compile = Seq(
+  val compile: Seq[ModuleID] = Seq(
     "uk.gov.hmrc"             %% "bootstrap-backend-play-30"   % bootstrapVersion,
     "uk.gov.hmrc.mongo"       %% "hmrc-mongo-play-30"          % hmrcMongoVersion,
-    "com.beachape"            %% "enumeratum-play"             % "1.8.1",
-    "uk.gov.hmrc.objectstore" %% "object-store-client-play-30" % "2.0.0",
-    "javax.xml.bind"          %  "jaxb-api"                    % "2.3.1",
+    "com.beachape"            %% "enumeratum-play"             % "1.8.2",
+    "uk.gov.hmrc.objectstore" %% "object-store-client-play-30" % "2.1.0",
+    "javax.xml.bind"           % "jaxb-api"                    % "2.3.1"
   )
 
-  val test = Seq(
-    "uk.gov.hmrc"             %% "bootstrap-test-play-30"  % bootstrapVersion,
-    "uk.gov.hmrc.mongo"       %% "hmrc-mongo-test-play-30" % hmrcMongoVersion,
+  val test: Seq[ModuleID] = Seq(
+    "uk.gov.hmrc"       %% "bootstrap-test-play-30"  % bootstrapVersion,
+    "uk.gov.hmrc.mongo" %% "hmrc-mongo-test-play-30" % hmrcMongoVersion
   ).map(_ % Test)
 
-  val it = Seq.empty
+  val it: Seq[Nothing] = Seq.empty
 }
