@@ -22,17 +22,19 @@ import org.apache.pekko.Done
 import org.apache.pekko.actor.{ActorSystem, Cancellable, Scheduler}
 import play.api.http.Status.NO_CONTENT
 import play.api.libs.json.Json
+import play.api.libs.ws.writeableOf_JsValue
 import play.api.{Configuration, Logging}
 import uk.gov.hmrc.dprs.stubs.config.Service
 import uk.gov.hmrc.dprs.stubs.models.ResultFile
 import uk.gov.hmrc.dprs.stubs.models.sdes.{NotificationCallback, NotificationType}
 import uk.gov.hmrc.dprs.stubs.models.submission.{SubmissionStatus, SubmissionSummary}
 import uk.gov.hmrc.dprs.stubs.repositories.{ResultFileRepository, SubmissionRepository}
+import uk.gov.hmrc.http.HttpReads.Implicits.readRaw
 import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, StringContextOps, UpstreamErrorResponse}
-import uk.gov.hmrc.objectstore.client.{Path, RetentionPeriod}
-import uk.gov.hmrc.objectstore.client.play.PlayObjectStoreClient
 import uk.gov.hmrc.objectstore.client.play.Implicits._
+import uk.gov.hmrc.objectstore.client.play.PlayObjectStoreClient
+import uk.gov.hmrc.objectstore.client.{Path, RetentionPeriod}
 
 import java.time.format.DateTimeFormatter
 import java.time.{Instant, LocalDateTime}
@@ -52,16 +54,16 @@ class SubmissionResultService @Inject()(
                                          objectStoreClient: PlayObjectStoreClient
                                        )(implicit ec: ExecutionContext) extends Logging {
 
-  private val digitalPlatformReporting: Service = configuration.get[Service]("microservice.services.digital-platform-reporting")
-  private val callbackAuthToken: String = configuration.get[String]("result-callback-auth-token")
-  private val resultDelay: FiniteDuration = configuration.get[FiniteDuration]("submission-result-delay")
+  private val digitalPlatformReporting: Service        = configuration.get[Service]("microservice.services.digital-platform-reporting")
+  private val callbackAuthToken:        String         = configuration.get[String]("result-callback-auth-token")
+  private val resultDelay:              FiniteDuration = configuration.get[FiniteDuration]("submission-result-delay")
 
   private val scheduler: Scheduler = actorSystem.scheduler
 
   def scheduleSuccess(submissionId: String)(implicit hc: HeaderCarrier): Cancellable =
     scheduleResponse(submissionId, successfulResponse(submissionId))
 
-  private def scheduleResponse(submissionId: String, response: BREResponse_Type)(implicit hc: HeaderCarrier): Cancellable = {
+  private def scheduleResponse(submissionId: String, response: BREResponse_Type)(implicit hc: HeaderCarrier): Cancellable =
     scheduler.scheduleOnce(resultDelay) {
 
       logger.info(s"Returning callback from submission $submissionId")
@@ -73,15 +75,18 @@ class SubmissionResultService @Inject()(
           logger.error("Problem sending callback", e)
       }
     }
-  }
 
   def scheduleSaveAndRespondSuccess(submission: SubmissionSummary)(implicit hc: HeaderCarrier): Cancellable =
     scheduleSaveAndRespond(submission, SubmissionStatus.Success, successfulResponse(submission.submissionId))
 
-  def scheduleSaveAndRespondFailure(submission: SubmissionSummary, numberOfFileErrors: Int, numberOfRowErrors: Int)(implicit hc: HeaderCarrier): Cancellable =
+  def scheduleSaveAndRespondFailure(submission: SubmissionSummary, numberOfFileErrors: Int, numberOfRowErrors: Int)(implicit
+    hc:                                         HeaderCarrier
+  ): Cancellable =
     scheduleSaveAndRespond(submission, SubmissionStatus.Rejected, failedResponse(submission.submissionId, numberOfFileErrors, numberOfRowErrors))
 
-  private def scheduleSaveAndRespond(submission: SubmissionSummary, endStatus: SubmissionStatus, response: BREResponse_Type)(implicit hc: HeaderCarrier): Cancellable = {
+  private def scheduleSaveAndRespond(submission: SubmissionSummary, endStatus: SubmissionStatus, response: BREResponse_Type)(implicit
+    hc:                                          HeaderCarrier
+  ): Cancellable =
     scheduler.scheduleOnce(resultDelay) {
 
       logger.info(s"Saving submission to repository")
@@ -112,20 +117,20 @@ class SubmissionResultService @Inject()(
           logger.error("Problem saving submission to repository", e)
       }
     }
-  }
 
   private def returnResult(submissionId: String, result: BREResponse_Type)(implicit hc: HeaderCarrier): Future[Done] = {
 
-    val xml = scalaxb.toXML(result, "BREResponse", generated.defaultScope)
+    val xml   = scalaxb.toXML(result, "BREResponse", generated.defaultScope)
     val bytes = xml.toString.getBytes(Charsets.UTF_8)
 
     logger.info(s"Result response is ${bytes.size} long")
     if (bytes.size <= 3_000_000) {
-      httpClient.post(url"$digitalPlatformReporting/dprs/validation-result")(HeaderCarrier())
+      httpClient
+        .post(url"$digitalPlatformReporting/dprs/validation-result")(HeaderCarrier())
         .setHeader(
-          "X-Correlation-ID" -> UUID.randomUUID().toString,
+          "X-Correlation-ID"  -> UUID.randomUUID().toString,
           "X-Conversation-ID" -> submissionId,
-          "Authorization" -> s"Bearer $callbackAuthToken",
+          "Authorization"     -> s"Bearer $callbackAuthToken"
         )
         .withBody(xml)
         .execute[HttpResponse]
@@ -162,7 +167,8 @@ class SubmissionResultService @Inject()(
   }
 
   private def sendNotification(notification: NotificationCallback)(implicit hc: HeaderCarrier): Future[HttpResponse] =
-    httpClient.post(url"$digitalPlatformReporting/sdes/submission/callback")
+    httpClient
+      .post(url"$digitalPlatformReporting/sdes/submission/callback")
       .withBody(Json.toJson(notification))
       .execute
 

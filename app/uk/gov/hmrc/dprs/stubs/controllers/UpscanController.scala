@@ -17,10 +17,12 @@
 package uk.gov.hmrc.dprs.stubs.controllers
 
 import play.api.libs.json.Json
+import play.api.libs.ws.writeableOf_JsValue
 import play.api.mvc.{Action, ControllerComponents}
 import play.api.{Configuration, Logging}
 import uk.gov.hmrc.dprs.stubs.config.Service
 import uk.gov.hmrc.dprs.stubs.models.upscan.UpscanCallbackRequest
+import uk.gov.hmrc.http.HttpReads.Implicits.readRaw
 import uk.gov.hmrc.http.StringContextOps
 import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
@@ -44,6 +46,7 @@ class UpscanController @Inject() (httpClient: HttpClientV2, configuration: Confi
       .execute
       .map(_.status match {
         case OK => Ok
+        case _  => InternalServerError
       })
   }
 }

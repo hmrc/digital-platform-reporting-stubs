@@ -26,9 +26,9 @@ import uk.gov.hmrc.dprs.stubs.config.Service
 import uk.gov.hmrc.dprs.stubs.models.{MetadataValue, SdesFile}
 import uk.gov.hmrc.dprs.stubs.repositories.ResultFileRepository
 import uk.gov.hmrc.objectstore.client.Path
+import uk.gov.hmrc.objectstore.client.play.Implicits._
 import uk.gov.hmrc.objectstore.client.play.PlayObjectStoreClient
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
-import uk.gov.hmrc.objectstore.client.play.Implicits._
 
 import java.net.URL
 import javax.inject.{Inject, Singleton}
@@ -45,7 +45,7 @@ class ResultFilesController @Inject()(
   private val stubsUrl = configuration.get[Service]("microservice.services.digital-platform-reporting-stubs")
 
   // Just ignoring information type as we don't need it at the moment
-  def list(informationType: String): Action[AnyContent] = Action.async { implicit request =>
+  def list(informationType: String): Action[AnyContent] = Action.async { implicit _ =>
     repository.list.map { files =>
 
       val sdesFiles = files.map { file =>

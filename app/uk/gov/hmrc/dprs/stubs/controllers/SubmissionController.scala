@@ -67,7 +67,7 @@ class SubmissionController @Inject()(
     }
   }
 
-  def getByCaseId(caseId: String): Action[AnyContent] = Action.async { implicit request =>
+  def getByCaseId(caseId: String): Action[AnyContent] = Action.async { implicit _ =>
     submissionRepository.getByCaseId(caseId).map {
       _.map { submission =>
         Ok(submission.body)
