@@ -25,6 +25,6 @@ class ResourceHelper @Inject() (environment: Environment) {
 
   def resourceAsString(resourcePath: String): String = {
     val path = environment.resourceAsStream(resourcePath).get
-    Source.fromInputStream(path).getLines.mkString("\n")
+    Source.fromInputStream(path).getLines().mkString("\n")
   }
 }

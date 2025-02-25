@@ -62,13 +62,13 @@ class PlatformOperatorController @Inject() (cc: ControllerComponents,
     }
   }
 
-  def view(subscriptionId: String): Action[AnyContent] = Action.async { implicit request =>
+  def view(subscriptionId: String): Action[AnyContent] = Action.async { implicit _ =>
     repository.get(subscriptionId).map { operators =>
       Ok(Json.toJson(ViewPlatformOperatorsResponse(operators)))
     }
   }
 
-  def viewOne(subscriptionId: String, operatorId: String): Action[AnyContent] = Action.async { implicit request =>
+  def viewOne(subscriptionId: String, operatorId: String): Action[AnyContent] = Action.async { implicit _ =>
     repository.get(subscriptionId, operatorId)
       .map(_.map { operator =>
         Ok(Json.toJson(ViewPlatformOperatorsResponse(Seq(operator))))

@@ -18,38 +18,36 @@ package uk.gov.hmrc.dprs.stubs.repositories
 
 import org.apache.pekko.Done
 import org.mongodb.scala.model._
-import uk.gov.hmrc.dprs.stubs.models.{ResultFile, SdesFile}
+import uk.gov.hmrc.dprs.stubs.models.ResultFile
 import uk.gov.hmrc.mongo.MongoComponent
-import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
+import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
 
 import java.util.concurrent.TimeUnit
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class ResultFileRepository @Inject()(
-                                      mongoComponent: MongoComponent
-                                    )(implicit ec: ExecutionContext)
-  extends PlayMongoRepository[ResultFile](
-    collectionName = "result-files",
-    mongoComponent = mongoComponent,
-    domainFormat = ResultFile.mongoFormat,
-    indexes = ResultFileRepository.indexes,
-    replaceIndexes = true
-  ) {
+class ResultFileRepository @Inject() (mongoComponent: MongoComponent)(implicit ec: ExecutionContext)
+    extends PlayMongoRepository[ResultFile](
+      collectionName = "result-files",
+      mongoComponent = mongoComponent,
+      domainFormat = ResultFile.mongoFormat,
+      indexes = ResultFileRepository.indexes,
+      replaceIndexes = true
+    ) {
 
-  def save(file: ResultFile): Future[Done] =
-    collection.insertOne(file)
-      .toFuture()
-      .map(_ => Done)
+  def save(file: ResultFile): Future[Done] = collection
+    .insertOne(file)
+    .toFuture()
+    .map(_ => Done)
 
-  def list: Future[Seq[ResultFile]] =
-    collection.find[ResultFile]()
-      .toFuture()
+  def list: Future[Seq[ResultFile]] = collection
+    .find[ResultFile]()
+    .toFuture()
 
-  def get(fileName: String): Future[Option[ResultFile]] =
-    collection.find(Filters.equal("fileName", fileName))
-      .headOption()
+  def get(fileName: String): Future[Option[ResultFile]] = collection
+    .find(Filters.equal("fileName", fileName))
+    .headOption()
 }
 
 object ResultFileRepository {
