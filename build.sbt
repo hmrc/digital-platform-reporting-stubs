@@ -13,7 +13,6 @@ lazy val microservice = Project("digital-platform-reporting-stubs", file("."))
     scalacOptions += "-Wconf:src=src_managed/.*/sbt-scalaxb/.*:s",
     scalaxbGenerateDispatchClient := false
   )
-  .settings(resolvers += Resolver.jcenterRepo)
   .settings(CodeCoverageSettings.settings *)
   .settings(PlayKeys.playDefaultPort := 20000)
 
