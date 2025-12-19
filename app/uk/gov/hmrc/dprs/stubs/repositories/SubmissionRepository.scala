@@ -17,7 +17,6 @@
 package uk.gov.hmrc.dprs.stubs.repositories
 
 import org.apache.pekko.Done
-import org.mongodb.scala.SingleObservableFuture
 import org.mongodb.scala.model._
 import play.api.Configuration
 import uk.gov.hmrc.dprs.stubs.models.submission.{SubmissionStatus, SubmissionSummary}
