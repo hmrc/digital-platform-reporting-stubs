@@ -8,11 +8,11 @@ lazy val microservice = Project("digital-platform-reporting-stubs", file("."))
   .settings(
     libraryDependencies ++= AppDependencies.compile ++ AppDependencies.test,
     // https://www.scala-lang.org/2021/01/12/configuring-and-suppressing-warnings.html
-    // suppress warnings in generated routes files
+    // suppress warnings in generated routes files and sbt-scalaxb
     scalacOptions += "-Wconf:src=routes/.*:s",
+    scalacOptions += "-Wconf:src=src_managed/.*/sbt-scalaxb/.*:s",
     scalaxbGenerateDispatchClient := false
   )
-  .settings(resolvers += Resolver.jcenterRepo)
   .settings(CodeCoverageSettings.settings *)
   .settings(PlayKeys.playDefaultPort := 20000)
 
