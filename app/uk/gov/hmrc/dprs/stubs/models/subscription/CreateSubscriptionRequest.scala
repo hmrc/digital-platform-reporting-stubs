@@ -21,6 +21,7 @@ import play.api.libs.json._
 
 final case class CreateSubscriptionRequest(safeId: String,
                                            gbUser: Boolean,
+                                           businessName: Option[String],
                                            tradingName: Option[String],
                                            primaryContact: Contact,
                                            secondaryContact: Option[Contact])
@@ -30,6 +31,7 @@ object CreateSubscriptionRequest {
   implicit lazy val downstreamReads: Reads[CreateSubscriptionRequest] = (
     (__ \ "idNumber").read[String] and
     (__ \ "gbUser").read[Boolean] and
+    (__ \ "businessName").readNullable[String] and
     (__ \ "tradingName").readNullable[String] and
     (__ \ "primaryContact").read[Contact] and
     (__ \ "secondaryContact").readNullable[Contact]
