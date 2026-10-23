@@ -21,6 +21,7 @@ import play.api.libs.json._
 
 final case class SubscriptionInfo(id: String,
                                   gbUser: Boolean,
+                                  businessName: Option[String],
                                   tradingName: Option[String],
                                   primaryContact: Contact,
                                   secondaryContact: Option[Contact])
@@ -30,15 +31,17 @@ object SubscriptionInfo {
   implicit lazy val writes: OWrites[SubscriptionInfo] = (
     (__ \ "success" \ "customer" \ "id").write[String] and
     (__ \ "success" \ "customer" \ "gbUser").write[Boolean] and
+    (__ \ "success" \ "customer" \ "businessName").writeNullable[String] and
     (__ \ "success" \ "customer" \ "tradingName").writeNullable[String] and
     (__ \ "success" \ "customer" \ "primaryContact").write[Contact] and
     (__ \ "success" \ "customer" \ "secondaryContact").writeNullable[Contact]
-  )(o => (o.id, o.gbUser, o.tradingName, o.primaryContact, o.secondaryContact))
+  )(o => (o.id, o.gbUser, o.businessName, o.tradingName, o.primaryContact, o.secondaryContact))
 
   def apply(subscription: Subscription): SubscriptionInfo =
     SubscriptionInfo(
       id = subscription._id,
       gbUser = subscription.gbUser,
+      businessName = subscription.businessName,
       tradingName = subscription.tradingName,
       primaryContact = subscription.primaryContact,
       secondaryContact = subscription.secondaryContact

@@ -23,6 +23,7 @@ import java.time.{Clock, Instant}
 
 final case class Subscription(_id: String,
                               gbUser: Boolean,
+                              businessName: Option[String],
                               tradingName: Option[String],
                               primaryContact: Contact,
                               secondaryContact: Option[Contact],
@@ -36,6 +37,7 @@ object Subscription extends MongoJavatimeFormats.Implicits {
     Subscription(
       _id = subscriptionId,
       gbUser = request.gbUser,
+      businessName = request.businessName,
       tradingName = request.tradingName,
       primaryContact = request.primaryContact,
       secondaryContact = request.secondaryContact,
@@ -46,6 +48,7 @@ object Subscription extends MongoJavatimeFormats.Implicits {
     Subscription(
       _id = request.id,
       gbUser = request.gbUser,
+      businessName = request.businessName,
       tradingName = request.tradingName,
       primaryContact = request.primaryContact,
       secondaryContact = request.secondaryContact,
